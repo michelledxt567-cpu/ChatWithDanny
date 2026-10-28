@@ -1,0 +1,643 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>WhatsApp — Danny (iPhone screen recording scene)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
+  /* Laid out in iPhone 15 points (393x852), zoomed so a 2x capture = 886x1920 (iOS screen-recording size). */
+  #screen { position: absolute; left: 0; top: 0; width: 393px; height: 852px; zoom: 1.127226;
+    overflow: hidden; font-family: "Noto Sans", sans-serif; color: #111b21; letter-spacing: -0.15px;
+    -webkit-font-smoothing: antialiased; background: #EFEAE2; }
+  #wall { position: absolute; inset: 0; background-color: #EFEAE2; background-repeat: repeat; }
+  #chat { position: absolute; inset: 0; overflow: hidden; }
+  #content { position: absolute; left: 0; right: 0; top: 0; }
+
+  .pillrow { display: flex; justify-content: center; padding: 10px 0 8px; }
+  .pill { background: #fff; color: #54656F; font-size: 12.5px; font-weight: 500; line-height: 16px;
+    padding: 5px 12px 5px; border-radius: 9px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+  .row { display: flex; padding: 0 14px; }
+  .row.me { justify-content: flex-end; }
+  .row.gap { margin-top: 8px; }
+  .row.tight { margin-top: 2px; }
+  .b { position: relative; max-width: 300px; padding: 6px 9px 7px 11px; border-radius: 17px;
+    font-size: 16px; line-height: 21px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); word-wrap: break-word; }
+  .me .b { background: #D9FDD3; }
+  .d  .b { background: #FFFFFF; }
+  .me .b.tailed { border-bottom-right-radius: 4px; }
+  .d  .b.tailed { border-bottom-left-radius: 4px; }
+  .b .sp { display: inline-block; height: 10px; vertical-align: baseline; }
+  .meta { position: absolute; right: 9px; bottom: 4px; font-size: 11px; line-height: 13px; color: #667781;
+    display: flex; align-items: center; gap: 3px; letter-spacing: 0; white-space: nowrap; }
+  .tail { position: absolute; bottom: 0; width: 13px; height: 17px; }
+  .me .tail { right: -7px; }
+  .d  .tail { left: -7px; transform: scaleX(-1); }
+  .emo { display: inline-block; width: 19px; height: 19px; vertical-align: -3.5px; margin-left: 1px; }
+  .jumbo { position: relative; display: flex; flex-direction: column; align-items: flex-start; padding: 2px 0 0 2px; }
+  .jumbo svg.big { width: 54px; height: 54px; }
+  .jumbo .jmeta { margin-top: 2px; margin-left: 30px; font-size: 11px; color: #667781; background: rgba(255,255,255,.92);
+    border-radius: 8px; padding: 1px 6px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+
+  /* header */
+  #header { position: absolute; left: 0; top: 0; width: 393px; height: 104px; z-index: 10;
+    background: #F6F6F6;
+    border-bottom: 0.5px solid rgba(0,0,0,0.16); }
+  #status { position: absolute; left: 0; top: 0; width: 393px; height: 54px; }
+  #clock { position: absolute; left: 0; width: 108px; top: 15px; text-align: center; font-size: 17px; font-weight: 600;
+    letter-spacing: -0.2px; color: #000; }
+  #sbright { position: absolute; right: 26px; top: 20px; display: flex; gap: 6px; align-items: center; }
+  #nav { position: absolute; left: 0; top: 54px; width: 393px; height: 50px; }
+  #back { position: absolute; left: 10px; top: 13px; }
+  #avatar { position: absolute; left: 38px; top: 7px; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
+  #name { position: absolute; left: 84px; top: 5px; font-size: 16.5px; font-weight: 600; color: #000; letter-spacing: -0.2px; }
+  #sub { position: absolute; left: 84px; top: 27px; font-size: 12px; color: #8696A0; letter-spacing: -0.1px; }
+  #navicons { position: absolute; right: 16px; top: 13px; display: flex; gap: 26px; align-items: center; }
+
+  /* scroll to bottom */
+  #down { position: absolute; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: #fff; z-index: 9;
+    box-shadow: 0 1px 3px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
+
+  /* input bar */
+  #bar { position: absolute; left: 0; width: 393px; z-index: 11; background: #F6F6F6; border-top: 0.5px solid rgba(0,0,0,0.12); }
+  #bar .inner { position: relative; min-height: 50px; }
+  #plus { position: absolute; left: 11px; bottom: 11px; }
+  #field { position: absolute; left: 46px; top: 7px; min-height: 36px; border-radius: 18px; background: #fff;
+    border: 1px solid #E3E3E3; padding: 6px 36px 6px 13px; font-size: 16.5px; line-height: 22px; color: #111b21; }
+  #sticker { position: absolute; right: 9px; bottom: 7px; }
+  #cam { position: absolute; left: 309px; bottom: 13px; }
+  #mic { position: absolute; left: 352px; bottom: 12px; }
+  #send { position: absolute; left: 350px; bottom: 8px; width: 34px; height: 34px; border-radius: 50%; background: #1DAA61;
+    display: flex; align-items: center; justify-content: center; }
+  #caret { display: inline-block; width: 2px; height: 21px; background: #1DAA61; vertical-align: -5px; margin-left: 1px; border-radius: 1px; }
+
+  /* keyboard */
+  #kb { position: absolute; left: 0; width: 393px; height: 330px; background: #D1D4DA; z-index: 12; }
+  .key { position: absolute; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.30);
+    display: flex; align-items: center; justify-content: center; font-size: 23px; color: #000; line-height: 1; }
+  .key.sp { background: #ABB0BC; font-size: 16px; }
+  .key.small { font-size: 16px; }
+  .key.pressedW { background: #fff !important; }
+  .key.pressedG { background: #ABB0BC !important; }
+  .layer { position: absolute; inset: 0; }
+  #pred { position: absolute; left: 0; top: 0; width: 393px; height: 44px; }
+  .pc { position: absolute; top: 6px; height: 32px; width: 125px; display: flex; align-items: center; justify-content: center;
+    font-size: 16.5px; color: #000; border-radius: 7px; white-space: nowrap; overflow: hidden; }
+  .pc.hl { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.12); }
+  .pdiv { position: absolute; top: 12px; width: 1px; height: 20px; background: #B5B8BF; }
+  #popup { position: absolute; z-index: 5; display: none; filter: drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.38)); }
+  #popup .bulb { position: absolute; background: #fff; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 34px; color: #000; }
+  #popup .stem { position: absolute; background: #fff; border-radius: 0 0 5px 5px; }
+  #popup .neck { position: absolute; background: #fff; }
+
+  #home { position: absolute; left: 129.5px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: #000; z-index: 30; }
+
+  /* control center */
+  #cc { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+  #ccbg { position: absolute; inset: 0; background: rgba(40,40,46,0.35); }
+  #ccin { position: absolute; inset: 0; transform-origin: 70% 0%; }
+  .tile { position: absolute; background: rgba(25,25,28,0.55); border-radius: 26px; }
+  .circ { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="screen">
+  <div id="wall"></div>
+  <div id="chat"><div id="content"></div></div>
+  <div id="down"><svg width="16" height="10" viewBox="0 0 16 10"><path d="M2 2 L8 8 L14 2" fill="none" stroke="#54656F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <div id="header">
+    <div id="status">
+      <div id="clock">6:40</div>
+      <div id="sbright">
+        <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1" fill="#000"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1" fill="#000"/><rect x="10" y="3" width="3.2" height="9" rx="1" fill="#000"/><rect x="15" y="0" width="3.2" height="12" rx="1" fill="#000"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.3c2.4 0 4.6.9 6.3 2.5l1.2-1.2C14 1.6 11.4.5 8.5.5S3 1.6 1 3.6l1.2 1.2C3.9 3.2 6.1 2.3 8.5 2.3z" fill="#000"/><path d="M8.5 5.6c1.5 0 2.8.6 3.9 1.5l1.2-1.2C12.2 4.6 10.4 3.8 8.5 3.8S4.8 4.6 3.4 5.9l1.2 1.2c1.1-.9 2.4-1.5 3.9-1.5z" fill="#000"/><path d="M8.5 8.9c.7 0 1.2.2 1.7.6L8.5 11.5 6.8 9.5c.5-.4 1-.6 1.7-.6z" fill="#000"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="23" height="12" rx="3.6" fill="none" stroke="#000" stroke-opacity="0.38"/><rect x="2" y="2" width="8.6" height="9" rx="2.2" fill="#000"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="#000" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div id="nav">
+      <svg id="back" width="13" height="22" viewBox="0 0 13 22"><path d="M11 2 L2 11 L11 20" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div id="avatar">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <defs>
+            <linearGradient id="avbg" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#9DB6C9"/><stop offset="0.55" stop-color="#C9B49A"/><stop offset="1" stop-color="#7C6A58"/></linearGradient>
+            <linearGradient id="avsk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C69C7E"/><stop offset="1" stop-color="#8E6650"/></linearGradient>
+          </defs>
+          <rect width="36" height="36" fill="url(#avbg)"/>
+          <path d="M3 36 C4 28 10 25.5 18 25.5 C26 25.5 32 28 33 36 Z" fill="#2F3A46"/>
+          <rect x="15" y="20" width="6" height="7" rx="2" fill="#9B7259"/>
+          <ellipse cx="18" cy="15.5" rx="6.3" ry="7.4" fill="url(#avsk)"/>
+          <path d="M11.4 14.5 C11 8.5 14 7 18 7 C23 7 25.4 9 24.7 14.2 C23.8 11.4 21.8 10.6 18.4 10.8 C15 11 13 11.6 11.4 14.5Z" fill="#2A211C"/>
+        </svg>
+      </div>
+      <div id="name">Danny</div>
+      <div id="sub">last seen Monday at 11:52 AM</div>
+      <div id="navicons">
+        <svg width="26" height="20" viewBox="0 0 26 20"><rect x="1" y="3" width="16" height="14" rx="3.5" fill="none" stroke="#000" stroke-width="1.7"/><path d="M17.5 8.2 L24.2 4.4 V15.6 L17.5 11.8" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <svg width="21" height="21" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="bar"><div class="inner">
+    <svg id="plus" width="28" height="28" viewBox="0 0 28 28"><path d="M14 5 V23 M5 14 H23" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+    <div id="field"><span id="txt"></span><span id="caret"></span>
+      <svg id="sticker" width="21" height="21" viewBox="0 0 22 22"><path d="M13.5 2.5 H6.5 a4 4 0 0 0 -4 4 v9 a4 4 0 0 0 4 4 h7 L19.5 13.5 V6.5 a4 4 0 0 0 -4 -4 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 19.5 V16 a2.5 2.5 0 0 1 2.5 -2.5 H19.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </div>
+    <svg id="cam" width="27" height="23" viewBox="0 0 27 23"><path d="M3.5 6 h4 l2-3 h8 l2 3 h4 a2 2 0 0 1 2 2 v11 a2 2 0 0 1 -2 2 h-20 a2 2 0 0 1 -2 -2 v-11 a2 2 0 0 1 2 -2 z" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/><circle cx="13.5" cy="13" r="4.4" fill="none" stroke="#000" stroke-width="1.7"/></svg>
+    <svg id="mic" width="20" height="26" viewBox="0 0 20 26"><rect x="6" y="1.5" width="8" height="14" rx="4" fill="none" stroke="#000" stroke-width="1.7"/><path d="M2.5 11.5 a7.5 7.5 0 0 0 15 0 M10 19 V24" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <div id="send"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M2.2 2.4 L16 9 L2.2 15.6 L3.9 9 Z" fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.9 9 H9" stroke="#1DAA61" stroke-width="1.3"/></svg></div>
+  </div></div>
+
+  <div id="kb">
+    <div id="pred"></div>
+    <div class="layer" id="abc"></div>
+    <div class="layer" id="num" style="display:none"></div>
+    <svg style="position:absolute;left:21px;top:268px" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11.5" fill="none" stroke="#50555C" stroke-width="1.8"/><circle cx="10" cy="11.5" r="1.5" fill="#50555C"/><circle cx="18" cy="11.5" r="1.5" fill="#50555C"/><path d="M8.6 16.2 c1.4 3 9.4 3 10.8 0" fill="none" stroke="#50555C" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg style="position:absolute;left:350px;top:267px" width="22" height="30" viewBox="0 0 20 26"><rect x="6" y="1.5" width="8" height="14" rx="4" fill="none" stroke="#50555C" stroke-width="1.8"/><path d="M2.5 11.5 a7.5 7.5 0 0 0 15 0 M10 19 V24" fill="none" stroke="#50555C" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div id="popup"><div class="bulb"></div><div class="neck"></div><div class="stem"></div></div>
+  </div>
+
+  <div id="home"></div>
+
+  <div id="cc">
+    <div id="ccbg"></div>
+    <div id="ccin"></div>
+  </div>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, x) => a + (b - a) * x;
+const easeOut3 = (x) => 1 - Math.pow(1 - x, 3);
+const easeOut4 = (x) => 1 - Math.pow(1 - x, 4);
+const easeInOut = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+// ---------- emoji (drawn in SVG; no emoji font in the render sandbox) ----------
+const EMOJI = {
+  '😭': `<svg viewBox="0 0 64 64"><defs>
+      <radialGradient id="fy" cx="0.45" cy="0.35" r="0.7"><stop offset="0" stop-color="#FFE873"/><stop offset="0.65" stop-color="#FFCB2E"/><stop offset="1" stop-color="#F5A300"/></radialGradient>
+      <linearGradient id="tb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FD4FF"/><stop offset="1" stop-color="#2D8FEA"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="30" fill="url(#fy)"/>
+      <path d="M13.5 27 C12.5 38 10.5 50 12 61 C15 62.5 19 63 22.5 62.5 C22 50 22.5 38 22 27 Z" fill="url(#tb)"/>
+      <path d="M50.5 27 C51.5 38 53.5 50 52 61 C49 62.5 45 63 41.5 62.5 C42 50 41.5 38 42 27 Z" fill="url(#tb)"/>
+      <path d="M11.5 25.5 Q18 19 25.5 24.5" fill="none" stroke="#5B3A0C" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M52.5 25.5 Q46 19 38.5 24.5" fill="none" stroke="#5B3A0C" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M21 38 Q32 33.5 43 38 Q44.5 51 32 52.5 Q19.5 51 21 38 Z" fill="#5C2A0E"/>
+      <path d="M25 48.5 Q32 44.5 39 48.5 Q36 52 32 52.3 Q28 52 25 48.5Z" fill="#E8546A"/>
+      <path d="M22.5 38.2 Q32 35.5 41.5 38.2 L41 40.5 Q32 38 23 40.5Z" fill="#fff"/></svg>`,
+  '👍': `<svg viewBox="0 0 64 64"><defs>
+      <linearGradient id="hy" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#FFDB4D"/><stop offset="1" stop-color="#F7B500"/></linearGradient></defs>
+      <path d="M9 34 C9 30.5 11 28.6 14.5 28.6 L20.6 28.6 L27 12 C28.6 7.8 31 5 34.4 5.4 C38.4 5.9 39.4 10 38.2 14.6 L36.4 23.6 L50 23.6 C55.6 23.6 57.2 29.6 53.2 32.2 C57.4 33.6 57.4 39.8 52.6 41 C56.4 42.8 55.8 48.6 51.2 49.6 C54.2 51.8 52.8 57.6 47.8 57.6 L17 57.6 C12 57.6 9 55 9 51 Z" fill="url(#hy)" stroke="#E49B00" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M40 32.3 L53 32.3 M40.5 41 L52.5 41 M40 49.6 L51 49.6" stroke="#E49B00" stroke-width="1.8" stroke-linecap="round"/></svg>`
+};
+function emojify(text) {
+  return text.replace(/😭|👍/g, (m) => `<span class="emo">${EMOJI[m]}</span>`);
+}
+
+// ---------- ticks ----------
+function ticks(kind) {
+  if (kind === 'clock') return `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.2" fill="none" stroke="#8696A0" stroke-width="1.2"/><path d="M6.5 3.6 V6.7 L8.6 7.9" fill="none" stroke="#8696A0" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+  const c = kind === 'read' ? '#53BDEB' : '#8696A0';
+  if (kind === 'sent') return `<svg width="13" height="11" viewBox="0 0 13 11"><path d="M11.4 1.2 L4.6 8.6 L1.6 5.6" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg width="17" height="11" viewBox="0 0 17 11"><path d="M11.2 1.2 L4.4 8.6 L1.4 5.6" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6 1.2 L8.8 8.6 L7.7 7.5" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+const TAIL = `<svg class="tail" viewBox="0 0 13 17"><path d="M0 0 H6 C6 8 7.6 13 12.6 16.6 C7 17.3 2.6 15.8 0 13.6 Z" fill="currentColor"/></svg>`;
+
+// ---------- conversation ----------
+const MSGS = [
+  { from: 'me', text: 'ok I’m gonna try to finish it tonight', time: '10:02 PM', tk: 'read' },
+  { from: 'd',  text: 'good luck lmao', time: '10:05 PM' },
+  { pill: 'Monday', id: 'pMon' },
+  { from: 'd',  text: 'Did you ever finish that poster last night?', time: '9:18 AM' },
+  { from: 'me', text: 'Barely 😭', time: '9:20 AM', tk: 'read' },
+  { from: 'me', text: 'I went to bed at like 3.', time: '9:20 AM', tk: 'read' },
+  { from: 'd',  text: 'Knew it lol', time: '9:20 AM' },
+  { from: 'd',  text: 'Send it to me when you get to campus', time: '9:21 AM' },
+  { from: 'me', text: 'Yeah yeah', time: '9:21 AM', tk: 'read', id: 'mYeah' },
+  { from: 'd',  text: 'btw I’m not coming to club this afternoon', time: '11:47 AM' },
+  { from: 'me', text: 'Why?', time: '11:48 AM', tk: 'read' },
+  { from: 'd',  text: 'I left the box with the display stuff at my dad’s old place', time: '11:49 AM' },
+  { from: 'd',  text: 'the printed boards + a bunch of the materials are still there', time: '11:49 AM' },
+  { from: 'd',  text: 'Need to go pick them up before I forget again', time: '11:49 AM' },
+  { from: 'me', text: 'That old house?', time: '11:50 AM', tk: 'read' },
+  { from: 'd',  text: 'Yeah', time: '11:50 AM' },
+  { from: 'd',  text: 'Haven’t been back there in ages lol', time: '11:51 AM' },
+  { from: 'me', text: 'Alright', time: '11:51 AM', tk: 'read' },
+  { from: 'me', text: 'See you tomorrow then', time: '11:51 AM', tk: 'read' },
+  { from: 'd',  jumbo: '👍', time: '11:52 AM', id: 'mThumb' },
+  { pill: 'Wednesday' },
+  { from: 'me', text: 'You alive?', time: '2:36 PM', tk: 'delivered' },
+  { pill: 'Thursday' },
+  { from: 'me', text: 'Hey, you haven’t been in class either', time: '8:14 PM', tk: 'delivered' },
+  { from: 'me', text: 'Everything okay?', time: '8:14 PM', tk: 'delivered', id: 'mLast' },
+];
+const NEW_MSG = { from: 'me', text: 'I’m coming over to check on you.', time: '6:41 PM' };
+
+function bubbleHTML(m, first, last, tkHTML) {
+  const color = m.from === 'me' ? '#D9FDD3' : '#FFFFFF';
+  const spW = m.from === 'me' ? (m.time.length > 7 ? 78 : 72) : (m.time.length > 7 ? 56 : 50);
+  const meta = `<span class="meta">${m.time}${m.from === 'me' ? `<span class="tk">${tkHTML}</span>` : ''}</span>`;
+  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${emojify(m.text)}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
+}
+
+function buildChat() {
+  const c = $('content');
+  let html = '<div style="height:400px"></div>';
+  for (let i = 0; i < MSGS.length; i++) {
+    const m = MSGS[i];
+    if (m.pill) { html += `<div class="pillrow"${m.id ? ` id="${m.id}"` : ''}><div class="pill">${m.pill}</div></div>`; continue; }
+    const prev = MSGS[i - 1], next = MSGS[i + 1];
+    const first = !prev || prev.pill || prev.from !== m.from;
+    const last = !next || next.pill || next.from !== m.from;
+    const cls = `row ${m.from} ${first ? (prev && prev.pill ? '' : 'gap') : 'tight'}`;
+    if (m.jumbo) {
+      html += `<div class="${cls}"${m.id ? ` id="${m.id}"` : ''}><div class="jumbo"><svg class="big" viewBox="0 0 64 64">${EMOJI[m.jumbo].replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg><div class="jmeta">${m.time}</div></div></div>`;
+    } else {
+      html += `<div class="${cls}"${m.id ? ` id="${m.id}"` : ''}>${bubbleHTML(m, first, last, ticks(m.tk))}</div>`;
+    }
+  }
+  // the message typed at the end of the video (collapsed until sent)
+  html += `<div id="newWrap" style="height:0;overflow:hidden"><div id="newInner">
+      <div class="pillrow"><div class="pill">Today</div></div>
+      <div class="row me" id="newRow">${bubbleHTML(NEW_MSG, true, true, '<span id="newTk"></span>')}</div>
+    </div></div>`;
+  html += '<div style="height:8px"></div>';
+  c.innerHTML = html;
+}
+
+// ---------- wallpaper doodles ----------
+function buildWall() {
+  const r = rng(7);
+  const S = 240; let g = '';
+  const col = '#DCD2C4';
+  for (let i = 0; i < 46; i++) {
+    const x = r() * S, y = r() * S, s = 7 + r() * 7, rot = r() * 360, k = Math.floor(r() * 8);
+    let p = '';
+    if (k === 0) p = `<circle cx="0" cy="0" r="${s * 0.7}"/>`;
+    else if (k === 1) p = `<path d="M0 ${s*0.6} C${-s} ${-s*0.2} ${-s*0.3} ${-s} 0 ${-s*0.3} C${s*0.3} ${-s} ${s} ${-s*0.2} 0 ${s*0.6}Z"/>`;
+    else if (k === 2) p = `<path d="M0 ${-s} L${s*0.3} ${-s*0.3} L${s} ${-s*0.3} L${s*0.45} ${s*0.15} L${s*0.65} ${s} L0 ${s*0.5} L${-s*0.65} ${s} L${-s*0.45} ${s*0.15} L${-s} ${-s*0.3} L${-s*0.3} ${-s*0.3}Z"/>`;
+    else if (k === 3) p = `<rect x="${-s*0.6}" y="${-s*0.6}" width="${s*1.2}" height="${s*1.2}" rx="${s*0.3}"/>`;
+    else if (k === 4) p = `<path d="M${-s} 0 Q${-s*0.5} ${-s} 0 0 T${s} 0"/>`;
+    else if (k === 5) p = `<path d="M${-s*0.4} ${s*0.7} V${-s*0.6} L${s*0.6} ${-s*0.8} V${s*0.4}"/><circle cx="${-s*0.6}" cy="${s*0.7}" r="${s*0.25}"/><circle cx="${s*0.4}" cy="${s*0.4}" r="${s*0.25}"/>`;
+    else if (k === 6) p = `<path d="M${-s*0.8} ${s*0.3} a${s*0.4} ${s*0.4} 0 0 1 ${s*0.3} ${-s*0.75} a${s*0.5} ${s*0.5} 0 0 1 ${s*0.9} ${-s*0.1} a${s*0.38} ${s*0.38} 0 0 1 ${s*0.4} ${s*0.85}Z"/>`;
+    else p = `<path d="M${s*0.3} ${-s*0.8} A${s*0.8} ${s*0.8} 0 1 0 ${s*0.3} ${s*0.8} A${s*0.6} ${s*0.6} 0 1 1 ${s*0.3} ${-s*0.8}Z"/>`;
+    g += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(0)})">${p}</g>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}"><g fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${g}</g></svg>`;
+  $('wall').style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+}
+
+// ---------- keyboard ----------
+const KB_H = 330;
+const KEYS = {};   // id -> {el, x, y, w, h, layer, kind}
+function addKey(layer, id, label, x, y, w, h, kind) {
+  const el = document.createElement('div');
+  el.className = 'key' + (kind === 'sp' ? ' sp' : '') + (kind === 'small' ? ' small' : '');
+  el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  el.innerHTML = label;
+  $(layer).appendChild(el);
+  KEYS[layer + ':' + id] = { el, x, y, w, h, layer, kind, label };
+  return el;
+}
+const SHIFT_OFF = `<svg width="20" height="19" viewBox="0 0 20 19"><path d="M10 1.5 L18.5 10 H13.5 V17.5 H6.5 V10 H1.5 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const SHIFT_ON  = `<svg width="20" height="19" viewBox="0 0 20 19"><path d="M10 1.5 L18.5 10 H13.5 V17.5 H6.5 V10 H1.5 Z" fill="#000" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const DEL = `<svg width="25" height="18" viewBox="0 0 25 18"><path d="M8 1.5 H21.5 a2 2 0 0 1 2 2 V14.5 a2 2 0 0 1 -2 2 H8 L1.5 9 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M11.5 5.5 L18 12 M18 5.5 L11.5 12" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+function buildKeyboard() {
+  const W = 393, kw = 33.3, g = 6, kh = 42, rows = [52, 106, 160, 214];
+  'qwertyuiop'.split('').forEach((c, i) => addKey('abc', c, c, 3 + i * (kw + g), rows[0], kw, kh));
+  const r2 = (W - (9 * kw + 8 * g)) / 2;
+  'asdfghjkl'.split('').forEach((c, i) => addKey('abc', c, c, r2 + i * (kw + g), rows[1], kw, kh));
+  const r3 = (W - (7 * kw + 6 * g)) / 2;
+  'zxcvbnm'.split('').forEach((c, i) => addKey('abc', c, c, r3 + i * (kw + g), rows[2], kw, kh));
+  addKey('abc', 'SHIFT', SHIFT_ON, 3, rows[2], 42, kh, 'sp');
+  addKey('abc', 'BS', DEL, W - 45, rows[2], 42, kh, 'sp');
+  addKey('abc', '123', '123', 3, rows[3], 88, kh, 'sp');
+  addKey('abc', 'SP', 'space', 97, rows[3], 199, kh, 'small');
+  addKey('abc', 'RET', 'return', 302, rows[3], 88, kh, 'sp');
+  // number layer
+  '1234567890'.split('').forEach((c, i) => addKey('num', c, c, 3 + i * (kw + g), rows[0], kw, kh));
+  ['-', '/', ':', ';', '(', ')', '$', '&amp;', '@', '“'].forEach((c, i) => addKey('num', 'n' + i, c, 3 + i * (kw + g), rows[1], kw, kh));
+  addKey('num', 'SYM', '#+=', 3, rows[2], 47, kh, 'sp');
+  const pw = (W - 3 - 47 - 6 - 47 - 3 - 6 - 4 * 6) / 5;
+  ['.', ',', '?', '!', '’'].forEach((c, i) => addKey('num', c === '.' ? '.' : 'p' + i, c, 56 + i * (pw + g), rows[2], pw, kh));
+  addKey('num', 'BS', DEL, W - 50, rows[2], 47, kh, 'sp');
+  addKey('num', 'ABC', 'ABC', 3, rows[3], 88, kh, 'sp');
+  addKey('num', 'SP', 'space', 97, rows[3], 199, kh, 'small');
+  addKey('num', 'RET', 'return', 302, rows[3], 88, kh, 'sp');
+  // predictive bar
+  $('pred').innerHTML = `<div class="pc" id="pc0" style="left:4px"></div><div class="pdiv" style="left:131px"></div>
+    <div class="pc" id="pc1" style="left:134px"></div><div class="pdiv" style="left:261px"></div><div class="pc" id="pc2" style="left:264px"></div>`;
+}
+
+// ---------- typing script ----------
+const SCRIPT = [];
+const T = {};
+(function buildScript() {
+  const r = rng(42);
+  let t = 17.9;
+  const tap = (k, dt) => { SCRIPT.push({ t, k }); t += dt; };
+  const type = (s, base = 0.155, jit = 0.11) => {
+    for (const ch of s) {
+      if (ch === ' ') tap('SP', base + 0.05 + r() * jit);
+      else tap(ch, base + r() * jit);
+    }
+  };
+  // starts to type his name... stops, deletes it
+  type('Dan', 0.2, 0.1);
+  t += 1.25;
+  tap('BS', 0.16); tap('BS', 0.15); tap('BS', 0.15);
+  t += 1.15;
+  // the real message
+  type('Im coming over ');
+  t += 0.55;
+  type('to chekc on you');
+  t += 0.3;
+  tap('123', 0.42);
+  tap('.', 0.2);
+  t += 1.15;
+  T.send = t;
+  SCRIPT.push({ t, k: 'SEND' });
+})();
+
+const AUTOCORRECT = { 'Im': 'I’m', 'chekc': 'check' };
+const DICT = ['Danny', 'Dang', 'Dad', 'coming', 'come', 'comes', 'over', 'overthinking', 'to', 'today', 'too', 'check', 'checking', 'chef',
+  'on', 'one', 'only', 'you', 'your', 'you’re', 'I', 'I’m', 'In', 'It'];
+const NEXT = { 'I’m': ['going', 'not', 'so'], 'coming': ['to', 'over', 'back'], 'over': ['to', 'now', 'there'], 'to': ['the', 'see', 'check'],
+  'check': ['on', 'in', 'out'], 'on': ['you', 'it', 'the'], 'you': ['?', 'and', 'to'] };
+
+function textState(t) {
+  let text = '', layer = 'abc', sent = false, lastAct = -10;
+  for (const a of SCRIPT) {
+    if (a.t > t) break;
+    lastAct = a.t;
+    const shift = text === '' && layer === 'abc';
+    if (a.k === 'BS') text = text.slice(0, -1);
+    else if (a.k === 'SP') {
+      const m = text.match(/(\S+)$/);
+      if (m && AUTOCORRECT[m[1]]) text = text.slice(0, -m[1].length) + AUTOCORRECT[m[1]];
+      text += ' ';
+    }
+    else if (a.k === '123') layer = 'num';
+    else if (a.k === 'ABC') layer = 'abc';
+    else if (a.k === 'SEND') { sent = true; text = ''; layer = 'abc'; }
+    else text += (shift ? a.k.toUpperCase() : a.k);
+  }
+  const shift = text === '' && layer === 'abc';
+  return { text, layer, shift, sent, lastAct };
+}
+function suggestions(text) {
+  if (text === '') return { s: ['I', 'Hey', 'The'], hl: -1 };
+  if (/[.?!]$/.test(text)) return { s: ['I', 'Thanks', 'Ok'], hl: -1 };
+  const m = text.match(/(\S*)$/); const w = m[1];
+  if (w === '') {
+    const prev = (text.trim().split(/\s+/).pop()) || '';
+    return { s: NEXT[prev] || ['the', 'to', 'I'], hl: -1 };
+  }
+  if (AUTOCORRECT[w]) return { s: [`“${w}”`, AUTOCORRECT[w], w === 'Im' ? 'In' : 'checks'], hl: 1 };
+  const c = DICT.filter((d) => d.toLowerCase().startsWith(w.toLowerCase()) && d !== w);
+  return { s: [`“${w}”`, c[0] || w, c[1] || ''], hl: -1 };
+}
+
+// ---------- control center ----------
+function buildCC() {
+  const icon = (d, col = '#fff') => `<svg width="24" height="24" viewBox="0 0 24 24">${d.replace(/STROKE/g, col)}</svg>`;
+  const P = {
+    plane: '<path d="M21 15.5 V13.8 L13.5 9 V4 a1.5 1.5 0 0 0 -3 0 V9 L3 13.8 V15.5 L10.5 13 V18 L8.5 19.5 V21 L12 20 L15.5 21 V19.5 L13.5 18 V13 Z" fill="STROKE"/>',
+    cell: '<rect x="3" y="14" width="3" height="6" rx="1" fill="STROKE"/><rect x="8" y="11" width="3" height="9" rx="1" fill="STROKE"/><rect x="13" y="8" width="3" height="12" rx="1" fill="STROKE"/><rect x="18" y="4" width="3" height="16" rx="1" fill="STROKE"/>',
+    wifi: '<path d="M12 6.5c3.1 0 5.9 1.2 8 3.2l1.5-1.5C19 5.8 15.7 4.4 12 4.4S5 5.8 2.5 8.2L4 9.7c2.1-2 4.9-3.2 8-3.2zm0 4.3c1.9 0 3.6.7 4.9 1.9l1.5-1.5C16.7 9.6 14.5 8.7 12 8.7s-4.7.9-6.4 2.5l1.5 1.5c1.3-1.2 3-1.9 4.9-1.9zm0 4.3c.9 0 1.6.3 2.2.8L12 18.2l-2.2-2.3c.6-.5 1.3-.8 2.2-.8z" fill="STROKE"/>',
+    bt: '<path d="M7 7.5 L16.5 16 L12 20 V4 L16.5 8 L7 16.5" fill="none" stroke="STROKE" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>',
+    lock: '<path d="M12 4 a8 8 0 1 0 8 8" fill="none" stroke="STROKE" stroke-width="1.8" stroke-linecap="round"/><path d="M18 9 L20.5 12 L23 9" fill="none" stroke="STROKE" stroke-width="1.8"/><rect x="8.5" y="11" width="7" height="6" rx="1.3" fill="STROKE"/><path d="M10 11 V9.5 a2 2 0 0 1 4 0 V11" fill="none" stroke="STROKE" stroke-width="1.5"/>',
+    moon: '<path d="M15.5 3.5 A8.5 8.5 0 1 0 20.5 15.5 A7 7 0 0 1 15.5 3.5 Z" fill="STROKE"/>',
+    torch: '<path d="M8 3 H16 V6 L14 10 V21 H10 V10 L8 6 Z" fill="none" stroke="STROKE" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.3" fill="STROKE"/>',
+    timer: '<circle cx="12" cy="13" r="8" fill="none" stroke="STROKE" stroke-width="1.7"/><path d="M12 13 V8 M10 2.5 H14" stroke="STROKE" stroke-width="1.7" stroke-linecap="round"/>',
+    calc: '<rect x="5" y="3" width="14" height="18" rx="2.5" fill="none" stroke="STROKE" stroke-width="1.6"/><rect x="8" y="6" width="8" height="3" rx="0.8" fill="STROKE"/><circle cx="9" cy="13" r="1.1" fill="STROKE"/><circle cx="12" cy="13" r="1.1" fill="STROKE"/><circle cx="15" cy="13" r="1.1" fill="STROKE"/><circle cx="9" cy="17" r="1.1" fill="STROKE"/><circle cx="12" cy="17" r="1.1" fill="STROKE"/><circle cx="15" cy="17" r="1.1" fill="STROKE"/>',
+    cam: '<path d="M4 8 h3 l1.6-2.4 h6.8 L17 8 h3 a1.5 1.5 0 0 1 1.5 1.5 v8 A1.5 1.5 0 0 1 20 19 H4 a1.5 1.5 0 0 1 -1.5 -1.5 v-8 A1.5 1.5 0 0 1 4 8 z" fill="none" stroke="STROKE" stroke-width="1.6"/><circle cx="12" cy="13" r="3.2" fill="none" stroke="STROKE" stroke-width="1.6"/>',
+    sun: '<circle cx="12" cy="12" r="4" fill="STROKE"/><path d="M12 2.5V5 M12 19v2.5 M2.5 12H5 M19 12h2.5 M5.3 5.3l1.8 1.8 M16.9 16.9l1.8 1.8 M5.3 18.7l1.8-1.8 M16.9 7.1l1.8-1.8" stroke="STROKE" stroke-width="1.8" stroke-linecap="round"/>',
+    vol: '<path d="M4 9.5 H7.5 L12 5.5 V18.5 L7.5 14.5 H4 Z" fill="STROKE"/><path d="M15 9 a4 4 0 0 1 0 6 M17.5 6.5 a7.5 7.5 0 0 1 0 11" fill="none" stroke="STROKE" stroke-width="1.7" stroke-linecap="round"/>',
+  };
+  const circ = (x, y, s, bg, ic) => `<div class="circ" style="left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${bg}">${ic}</div>`;
+  let h = '';
+  // connectivity block
+  h += `<div class="tile" style="left:24px;top:96px;width:166px;height:166px"></div>`;
+  h += circ(40, 112, 60, 'rgba(120,120,128,0.45)', icon(P.plane));
+  h += circ(114, 112, 60, '#30D158', icon(P.cell));
+  h += circ(40, 186, 60, '#0A84FF', icon(P.wifi));
+  h += circ(114, 186, 60, '#0A84FF', icon(P.bt));
+  // media block
+  h += `<div class="tile" style="left:203px;top:96px;width:166px;height:166px"></div>`;
+  h += `<div style="position:absolute;left:222px;top:118px;color:rgba(255,255,255,.9);font-size:15px;font-weight:600;font-family:'Noto Sans'">Not Playing</div>`;
+  h += `<div style="position:absolute;left:236px;top:210px;width:100px;display:flex;justify-content:space-between;opacity:.45">
+        <svg width="24" height="18" viewBox="0 0 24 18"><path d="M11 2 V16 L2 9Z M22 2 V16 L13 9Z" fill="#fff"/></svg>
+        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 1 V17 L16 9Z" fill="#fff"/></svg>
+        <svg width="24" height="18" viewBox="0 0 24 18"><path d="M2 2 V16 L11 9Z M13 2 V16 L22 9Z" fill="#fff"/></svg></div>`;
+  // small tiles
+  h += circ(24, 276, 76, 'rgba(25,25,28,0.55)', icon(P.lock));
+  h += circ(114, 276, 76, 'rgba(25,25,28,0.55)', icon(P.moon));
+  // sliders
+  h += `<div class="tile" style="left:203px;top:276px;width:76px;height:166px;border-radius:24px;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:62%;background:rgba(255,255,255,.92)"></div><div style="position:absolute;left:26px;bottom:16px">${icon(P.sun, '#8A8A8E')}</div></div>`;
+  h += `<div class="tile" style="left:293px;top:276px;width:76px;height:166px;border-radius:24px;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:45%;background:rgba(255,255,255,.92)"></div><div style="position:absolute;left:26px;bottom:16px">${icon(P.vol, '#8A8A8E')}</div></div>`;
+  h += `<div class="tile" style="left:24px;top:366px;width:166px;height:76px;border-radius:24px"></div>`;
+  h += `<div style="position:absolute;left:44px;top:392px;color:#fff;font-size:15px;font-weight:600;font-family:'Noto Sans'">Focus</div>`;
+  // bottom row
+  h += circ(24, 456, 76, 'rgba(25,25,28,0.55)', icon(P.torch));
+  h += circ(114, 456, 76, 'rgba(25,25,28,0.55)', icon(P.timer));
+  h += circ(203, 456, 76, 'rgba(25,25,28,0.55)', icon(P.calc));
+  h += `<div class="circ" id="recbtn" style="left:293px;top:456px;width:76px;height:76px;background:rgba(25,25,28,0.55)"><div style="width:30px;height:30px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center"><div id="recdot" style="width:18px;height:18px;border-radius:50%;background:#FF3B30"></div></div></div>`;
+  h += circ(24, 546, 76, 'rgba(25,25,28,0.55)', icon(P.cam));
+  $('ccin').innerHTML = h;
+}
+
+// ---------- layout measurement ----------
+const L = {};
+function measure() {
+  const content = $('content');
+  L.H = content.offsetHeight;
+  const off = (id) => { const e = $(id); return { top: e.offsetTop, h: e.offsetHeight }; };
+  L.pMon = off('pMon'); L.thumb = off('mThumb'); L.yeah = off('mYeah');
+  const newInner = $('newInner'); L.newH = newInner.offsetHeight;
+}
+
+const BAR_H0 = 50, SAFE = 34, SCREEN_H = 852;
+function barTopFor(kbP, barH) {
+  const kbTop = SCREEN_H - KB_H * kbP;
+  return kbP > 0 ? Math.min(SCREEN_H - SAFE - barH, kbTop - barH) : SCREEN_H - SAFE - barH;
+}
+
+// ---------- timeline ----------
+const TIMES = {
+  ccOut: [0.0, 0.5],
+  kb: [16.05, 16.45],
+  minute: 20.4,           // status bar 6:40 -> 6:41
+};
+TIMES.end = T.send + 5.6;
+TIMES.ccIn = [TIMES.end - 0.95, TIMES.end - 0.5];
+window.DURATION = TIMES.end;
+
+let SCROLL = null;
+function buildScroll() {
+  const B0 = barTopFor(0, BAR_H0) - 0;    // visible bottom when keyboard hidden
+  // d = distance scrolled up from the bottom. element top y = B0 + d - H + offTop
+  const dFor = (yTop, offTop) => yTop - B0 + L.H - offTop;
+  const d0 = dFor(112, L.pMon.top);                         // Monday separator right under the header
+  const d2 = dFor(B0 - 14 - L.thumb.h, L.thumb.top);         // end of Monday at the bottom of the view
+  const d1 = Math.round(d0 - (d0 - d2) * 0.42);
+  SCROLL = [
+    { t: 0,     d: d0 },
+    { t: 4.6,   d: d0 },
+    { t: 5.55,  d: d1, ease: easeOut4 },
+    { t: 9.0,   d: d1 },
+    { t: 9.95,  d: d2, ease: easeOut4 },
+    { t: 11.6,  d: d2 },
+    { t: 12.25, d: -16, ease: easeOut3 },
+    { t: 12.75, d: 0, ease: easeInOut },
+  ];
+}
+function scrollAt(t) {
+  let d = SCROLL[0].d;
+  for (let i = 1; i < SCROLL.length; i++) {
+    const a = SCROLL[i - 1], b = SCROLL[i];
+    if (t >= b.t) { d = b.d; continue; }
+    if (t > a.t) { const x = (t - a.t) / (b.t - a.t); d = lerp(a.d, b.d, (b.ease || ((v) => v))(x)); }
+    break;
+  }
+  return d;
+}
+
+// ---------- render one frame ----------
+let lastLayer = '';
+window.render = function (t) {
+  // status bar clock
+  $('clock').textContent = t < TIMES.minute ? '6:40' : '6:41';
+
+  // keyboard progress
+  const kbP = easeOut4(clamp((t - TIMES.kb[0]) / (TIMES.kb[1] - TIMES.kb[0]), 0, 1));
+  const kbTop = SCREEN_H - KB_H * kbP;
+  $('kb').style.top = kbTop + 'px';
+  $('kb').style.display = kbP > 0 ? 'block' : 'none';
+
+  // text field
+  const st = textState(t);
+  const typing = st.text.length > 0;
+  $('txt').textContent = st.text;
+  $('field').style.width = (typing ? 294 : 246) + 'px';
+  $('cam').style.display = typing ? 'none' : 'block';
+  $('mic').style.display = typing ? 'none' : 'block';
+  $('send').style.display = typing ? 'flex' : 'none';
+  const since = t - st.lastAct;
+  const caretOn = kbP > 0.6 && (since < 0.45 || Math.floor((since - 0.45) / 0.5) % 2 === 1);
+  $('caret').style.opacity = caretOn ? 1 : 0;
+  $('caret').style.display = kbP > 0 ? 'inline-block' : 'none';
+
+  const fieldH = $('field').offsetHeight;
+  const barH = Math.max(BAR_H0, fieldH + 14);
+  const barTop = barTopFor(kbP, barH);
+  const bar = $('bar');
+  bar.style.top = barTop + 'px';
+  bar.style.height = (SCREEN_H - barTop) + 'px';
+  bar.querySelector('.inner').style.height = barH + 'px';
+
+  // sent message
+  let grow = 0;
+  if (st.sent) {
+    const x = clamp((t - T.send) / 0.24, 0, 1);
+    grow = easeOut3(x);
+    $('newWrap').style.height = (L.newH * grow) + 'px';
+    const row = $('newRow');
+    row.style.opacity = clamp(x * 1.6, 0, 1);
+    row.style.transform = `translateY(${(1 - grow) * 14}px)`;
+    $('newTk').innerHTML = t - T.send < 0.55 ? ticks('clock') : ticks('sent');
+  } else {
+    $('newWrap').style.height = '0px';
+  }
+
+  // chat scroll
+  const d = scrollAt(t);
+  const H = L.H + L.newH * grow;
+  const visBottom = barTop;
+  $('content').style.transform = `translateY(${(visBottom + d - H).toFixed(2)}px)`;
+
+  // scroll-to-bottom button
+  const dn = $('down');
+  dn.style.top = (barTop - 34 - 14) + 'px';
+  const show = clamp((d - 60) / 40, 0, 1);
+  dn.style.opacity = show;
+  dn.style.transform = `scale(${0.8 + 0.2 * show})`;
+
+  // keyboard layer + keys
+  if (kbP > 0) {
+    if (st.layer !== lastLayer) {
+      $('abc').style.display = st.layer === 'abc' ? 'block' : 'none';
+      $('num').style.display = st.layer === 'num' ? 'block' : 'none';
+      lastLayer = st.layer;
+    }
+    for (const k of Object.values(KEYS)) {
+      if (k.layer === 'abc' && k.label.length === 1) k.el.textContent = st.shift ? k.label.toUpperCase() : k.label;
+      k.el.classList.remove('pressedW', 'pressedG');
+    }
+    const sh = KEYS['abc:SHIFT'];
+    sh.el.innerHTML = st.shift ? SHIFT_ON : SHIFT_OFF;
+    sh.el.style.background = st.shift ? '#fff' : '#ABB0BC';
+
+    // pressed key + popup
+    const pop = $('popup');
+    pop.style.display = 'none';
+    const act = SCRIPT.find((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
+    if (act) {
+      // the key that was pressed belongs to the layer active *before* the action
+      const before = textState(act.t - 0.0001);
+      const layer = before.layer;
+      const id = act.k.length === 1 ? act.k.toLowerCase() : act.k;
+      const key = KEYS[layer + ':' + id];
+      if (key) {
+        if (key.kind === 'sp' || key.kind === 'small') {
+          key.el.classList.add(key.kind === 'small' ? 'pressedG' : 'pressedW');
+        } else {
+          const lbl = layer === 'abc' ? (before.shift ? id.toUpperCase() : id) : key.label;
+          const bw = key.w + 22, bh = 54;
+          const left = clamp(key.x - 11, 1, 393 - bw - 1);
+          pop.style.display = 'block';
+          pop.style.left = '0px'; pop.style.top = '0px';
+          const bulb = pop.querySelector('.bulb'), stem = pop.querySelector('.stem'), neck = pop.querySelector('.neck');
+          bulb.style.cssText = `left:${left}px;top:${key.y - bh - 10}px;width:${bw}px;height:${bh}px`;
+          bulb.textContent = lbl;
+          neck.style.cssText = `left:${key.x}px;top:${key.y - 14}px;width:${key.w}px;height:16px`;
+          stem.style.cssText = `left:${key.x}px;top:${key.y}px;width:${key.w}px;height:${key.h}px`;
+        }
+      }
+    }
+    // predictive text bar
+    const sg = suggestions(st.text);
+    for (let i = 0; i < 3; i++) {
+      const el = $('pc' + i);
+      el.textContent = sg.s[i] || '';
+      el.classList.toggle('hl', sg.hl === i);
+    }
+  }
+
+  // control center (recording starts with it being dismissed, ends with it being pulled down)
+  let c = 0;
+  if (t < TIMES.ccOut[1]) c = 1 - easeInOut(clamp((t - TIMES.ccOut[0]) / (TIMES.ccOut[1] - TIMES.ccOut[0]), 0, 1));
+  if (t > TIMES.ccIn[0]) c = easeOut3(clamp((t - TIMES.ccIn[0]) / (TIMES.ccIn[1] - TIMES.ccIn[0]), 0, 1));
+  const cc = $('cc');
+  if (c <= 0.001) { cc.style.display = 'none'; }
+  else {
+    cc.style.display = 'block';
+    cc.style.backdropFilter = `blur(${(26 * c).toFixed(1)}px) saturate(${100 + 40 * c}%)`;
+    $('ccbg').style.opacity = c;
+    const ci = $('ccin');
+    ci.style.opacity = clamp(c * 1.3 - 0.15, 0, 1);
+    ci.style.transform = `scale(${(0.86 + 0.14 * c).toFixed(4)})`;
+  }
+};
+
+// ---------- init ----------
+buildWall(); buildChat(); buildKeyboard(); buildCC();
+window.ready = document.fonts.ready.then(() => { measure(); buildScroll(); window.render(0); return true; });
+</script>
+</body>
+</html>
