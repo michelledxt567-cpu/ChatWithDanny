@@ -1,0 +1,780 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Video 2: 8:23 PM at Danny's old house, flash photo, messages fail</title>
+<script src="phone.js"></script>
+<script src="house3d.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
+  /* Laid out in iPhone 15 points (393x852), zoomed so a 2x capture = 886x1920 (iOS screen-recording size). */
+  #screen { position: absolute; left: 0; top: 0; width: 393px; height: 852px; zoom: 1.127226;
+    overflow: hidden; font-family: "Noto Sans", sans-serif; color: #111b21; letter-spacing: -0.15px;
+    -webkit-font-smoothing: antialiased; background: #000; }
+  #status { visibility: hidden; }
+  #wall { position: absolute; inset: 0; background-color: #EFEAE2; background-repeat: repeat; }
+  #chat { position: absolute; inset: 0; overflow: hidden; }
+  #content { position: absolute; left: 0; right: 0; top: 0; }
+
+  .pillrow { display: flex; justify-content: center; padding: 10px 0 8px; }
+  .pill { background: #fff; color: #54656F; font-size: 12.5px; font-weight: 500; line-height: 16px;
+    padding: 5px 12px 5px; border-radius: 9px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+  .row { display: flex; padding: 0 14px; }
+  .row.me { justify-content: flex-end; }
+  .row.gap { margin-top: 8px; }
+  .row.tight { margin-top: 2px; }
+  .b { position: relative; max-width: 300px; padding: 6px 9px 7px 11px; border-radius: 17px;
+    font-size: 16px; line-height: 21px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); word-wrap: break-word; }
+  .me .b { background: #D9FDD3; }
+  .d  .b { background: #FFFFFF; }
+  .me .b.tailed { border-bottom-right-radius: 4px; }
+  .d  .b.tailed { border-bottom-left-radius: 4px; }
+  .b .sp { display: inline-block; height: 10px; vertical-align: baseline; }
+  .meta { position: absolute; right: 9px; bottom: 4px; font-size: 11px; line-height: 13px; color: #667781;
+    display: flex; align-items: center; gap: 3px; letter-spacing: 0; white-space: nowrap; }
+  .tail { position: absolute; bottom: 0; width: 13px; height: 17px; }
+  .me .tail { right: -7px; }
+  .d  .tail { left: -7px; transform: scaleX(-1); }
+  .emo { display: inline-block; width: 19px; height: 19px; vertical-align: -3.5px; margin-left: 1px; }
+  .jumbo { position: relative; display: flex; flex-direction: column; align-items: flex-start; padding: 2px 0 0 2px; }
+  .jumbo svg.big { width: 54px; height: 54px; }
+  .jumbo .jmeta { margin-top: 2px; margin-left: 30px; font-size: 11px; color: #667781; background: rgba(255,255,255,.92);
+    border-radius: 8px; padding: 1px 6px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+
+  /* header */
+  #header { position: absolute; left: 0; top: 0; width: 393px; height: 104px; z-index: 10;
+    background: #F6F6F6;
+    border-bottom: 0.5px solid rgba(0,0,0,0.16); }
+  #status { position: absolute; left: 0; top: 0; width: 393px; height: 54px; }
+  #clock { position: absolute; left: 0; width: 108px; top: 15px; text-align: center; font-size: 17px; font-weight: 600;
+    letter-spacing: -0.2px; color: #000; }
+  #sbright { position: absolute; right: 26px; top: 20px; display: flex; gap: 6px; align-items: center; }
+  #nav { position: absolute; left: 0; top: 54px; width: 393px; height: 50px; }
+  #back { position: absolute; left: 10px; top: 13px; }
+  #avatar { position: absolute; left: 38px; top: 7px; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
+  #name { position: absolute; left: 84px; top: 5px; font-size: 16.5px; font-weight: 600; color: #000; letter-spacing: -0.2px; }
+  #sub { position: absolute; left: 84px; top: 27px; font-size: 12px; color: #8696A0; letter-spacing: -0.1px; }
+  #navicons { position: absolute; right: 16px; top: 13px; display: flex; gap: 26px; align-items: center; }
+
+  /* scroll to bottom */
+  #down { position: absolute; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: #fff; z-index: 9;
+    box-shadow: 0 1px 3px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
+
+  /* input bar */
+  #bar { position: absolute; left: 0; width: 393px; z-index: 11; background: #F6F6F6; border-top: 0.5px solid rgba(0,0,0,0.12); }
+  #bar .inner { position: relative; min-height: 50px; }
+  #plus { position: absolute; left: 11px; bottom: 11px; }
+  #field { position: absolute; left: 46px; top: 7px; min-height: 36px; border-radius: 18px; background: #fff;
+    border: 1px solid #E3E3E3; padding: 6px 36px 6px 13px; font-size: 16.5px; line-height: 22px; color: #111b21; }
+  #sticker { position: absolute; right: 9px; bottom: 7px; }
+  #cam { position: absolute; left: 309px; bottom: 13px; }
+  #mic { position: absolute; left: 352px; bottom: 12px; }
+  #send { position: absolute; left: 350px; bottom: 8px; width: 34px; height: 34px; border-radius: 50%; background: #1DAA61;
+    display: flex; align-items: center; justify-content: center; }
+  #caret { display: inline-block; width: 2px; height: 21px; background: #1DAA61; vertical-align: -5px; margin-left: 1px; border-radius: 1px; }
+
+  /* keyboard */
+  #kb { position: absolute; left: 0; width: 393px; height: 330px; background: #D1D4DA; z-index: 12; }
+  .key { position: absolute; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.30);
+    display: flex; align-items: center; justify-content: center; font-size: 23px; color: #000; line-height: 1; }
+  .key.sp { background: #ABB0BC; font-size: 16px; }
+  .key.small { font-size: 16px; }
+  .key.pressedW { background: #fff !important; }
+  .key.pressedG { background: #ABB0BC !important; }
+  .layer { position: absolute; inset: 0; }
+  #pred { position: absolute; left: 0; top: 0; width: 393px; height: 44px; }
+  .pc { position: absolute; top: 6px; height: 32px; width: 125px; display: flex; align-items: center; justify-content: center;
+    font-size: 16.5px; color: #000; border-radius: 7px; white-space: nowrap; overflow: hidden; }
+  .pc.hl { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.12); }
+  .pdiv { position: absolute; top: 12px; width: 1px; height: 20px; background: #B5B8BF; }
+  #popup { position: absolute; z-index: 5; display: none; filter: drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.38)); }
+  #popup .bulb { position: absolute; background: #fff; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 34px; color: #000; }
+  #popup .stem { position: absolute; background: #fff; border-radius: 0 0 5px 5px; }
+  #popup .neck { position: absolute; background: #fff; }
+
+  #home { position: absolute; left: 129.5px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: #000; z-index: 30; }
+
+  .fail { align-self: center; width: 22px; height: 22px; border-radius: 50%; background: #EA0038; color: #fff; font-size: 15px; font-weight: 700;
+    line-height: 22px; text-align: center; margin-right: 8px; visibility: hidden; }
+  .imgb { padding: 3px !important; }
+  .phimg { display: block; width: 248px; height: 331px; border-radius: 13px; object-fit: cover; }
+  .phOv { position: absolute; left: 3px; top: 3px; width: 248px; height: 331px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+  .imeta { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: #fff; display: flex; gap: 3px; align-items: center;
+    text-shadow: 0 0 2px rgba(0,0,0,.5); letter-spacing: 0; }
+  .imgb::after { content: ''; position: absolute; left: 3px; right: 3px; bottom: 3px; height: 40px; border-radius: 0 0 13px 13px;
+    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.35)); pointer-events: none; }
+  .imeta { z-index: 2; }
+
+  /* iOS Camera app */
+  #camApp { position: absolute; inset: 0; z-index: 25; background: #000; overflow: hidden; display: none; color: #fff; }
+  #vf { position: absolute; left: 0; top: 104px; width: 393px; height: 524px; }
+  #vfBlack { position: absolute; left: 0; top: 104px; width: 393px; height: 524px; background: #000; }
+  .cbtn { position: absolute; display: flex; align-items: center; justify-content: center; }
+  #flashPill { position: absolute; left: 146px; top: 116px; width: 101px; height: 26px; border-radius: 13px; background: #FFD60A; color: #000;
+    font-size: 13px; font-weight: 600; letter-spacing: .3px; display: flex; align-items: center; justify-content: center; opacity: 0; }
+  #zoomRow { position: absolute; left: 0; right: 0; top: 576px; display: flex; justify-content: center; gap: 6px; }
+  .zb { width: 38px; height: 38px; border-radius: 50%; background: rgba(30,30,30,.55); font-size: 12.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; }
+  #modes { position: absolute; top: 650px; left: 0; width: 393px; height: 20px; font-size: 13.5px; font-weight: 500; letter-spacing: .9px; white-space: nowrap; }
+  #modes span { position: absolute; top: 0; transform: translateX(-50%); color: rgba(255,255,255,.95); }
+  #shutter { position: absolute; left: 158px; top: 700px; width: 77px; height: 77px; border-radius: 50%; border: 5px solid #fff; }
+  #shutterIn { position: absolute; left: 4px; top: 4px; width: 59px; height: 59px; border-radius: 50%; background: #fff; }
+  #thumb { position: absolute; left: 34px; top: 715px; width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #1c1c1e; }
+  #thumb img { width: 100%; height: 100%; object-fit: cover; }
+  #flip { position: absolute; left: 310px; top: 714px; width: 50px; height: 50px; border-radius: 50%; background: rgba(60,60,64,.7); }
+  #shutFx { position: absolute; left: 0; top: 104px; width: 393px; height: 524px; background: #000; opacity: 0; }
+
+  /* WhatsApp camera + preview */
+  #waCam, #waPrev { position: absolute; inset: 0; z-index: 30; background: #000; display: none; color: #fff; overflow: hidden; }
+  #waVf { position: absolute; left: 0; top: 0; width: 393px; height: 852px; }
+  #waStrip { position: absolute; left: 0; top: 612px; height: 70px; display: flex; gap: 3px; padding-left: 3px; }
+  #waStrip .st { width: 70px; height: 70px; overflow: hidden; }
+  #waStrip img, #waStrip .st div { width: 100%; height: 100%; object-fit: cover; }
+  #waShut { position: absolute; left: 160px; top: 712px; width: 73px; height: 73px; border-radius: 50%; border: 4.5px solid #fff; }
+  #waModes { position: absolute; top: 800px; left: 0; right: 0; text-align: center; font-size: 13px; font-weight: 600; letter-spacing: .2px; }
+  #prevImg { position: absolute; left: 0; top: 152px; width: 393px; height: 524px; object-fit: cover; }
+  #capt { position: absolute; left: 12px; right: 12px; top: 702px; height: 40px; border-radius: 20px; background: rgba(48,48,52,.95);
+    font-size: 16px; color: rgba(255,255,255,.55); display: flex; align-items: center; padding-left: 46px; }
+  #recip { position: absolute; left: 12px; top: 770px; height: 30px; border-radius: 15px; background: rgba(48,48,52,.95); padding: 0 14px;
+    font-size: 15px; font-weight: 500; display: flex; align-items: center; }
+  #prevSend { position: absolute; left: 329px; top: 760px; width: 50px; height: 50px; border-radius: 50%; background: #1DAA61;
+    display: flex; align-items: center; justify-content: center; }
+  .press { filter: brightness(0.65); }
+</style>
+</head>
+<body>
+<div id="screen">
+<div id="launchclip"><div id="app">
+  <div id="wall"></div>
+  <div id="chat"><div id="content"></div></div>
+  <div id="down"><svg width="16" height="10" viewBox="0 0 16 10"><path d="M2 2 L8 8 L14 2" fill="none" stroke="#54656F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <div id="header">
+    <div id="status">
+      <div id="clock">6:40</div>
+      <div id="sbright">
+        <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1" fill="#000"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1" fill="#000"/><rect x="10" y="3" width="3.2" height="9" rx="1" fill="#000"/><rect x="15" y="0" width="3.2" height="12" rx="1" fill="#000"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.3c2.4 0 4.6.9 6.3 2.5l1.2-1.2C14 1.6 11.4.5 8.5.5S3 1.6 1 3.6l1.2 1.2C3.9 3.2 6.1 2.3 8.5 2.3z" fill="#000"/><path d="M8.5 5.6c1.5 0 2.8.6 3.9 1.5l1.2-1.2C12.2 4.6 10.4 3.8 8.5 3.8S4.8 4.6 3.4 5.9l1.2 1.2c1.1-.9 2.4-1.5 3.9-1.5z" fill="#000"/><path d="M8.5 8.9c.7 0 1.2.2 1.7.6L8.5 11.5 6.8 9.5c.5-.4 1-.6 1.7-.6z" fill="#000"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="23" height="12" rx="3.6" fill="none" stroke="#000" stroke-opacity="0.38"/><rect x="2" y="2" width="8.6" height="9" rx="2.2" fill="#000"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="#000" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div id="nav">
+      <svg id="back" width="13" height="22" viewBox="0 0 13 22"><path d="M11 2 L2 11 L11 20" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div id="avatar">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <defs>
+            <linearGradient id="avbg" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#9DB6C9"/><stop offset="0.55" stop-color="#C9B49A"/><stop offset="1" stop-color="#7C6A58"/></linearGradient>
+            <linearGradient id="avsk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C69C7E"/><stop offset="1" stop-color="#8E6650"/></linearGradient>
+          </defs>
+          <rect width="36" height="36" fill="url(#avbg)"/>
+          <path d="M3 36 C4 28 10 25.5 18 25.5 C26 25.5 32 28 33 36 Z" fill="#2F3A46"/>
+          <rect x="15" y="20" width="6" height="7" rx="2" fill="#9B7259"/>
+          <ellipse cx="18" cy="15.5" rx="6.3" ry="7.4" fill="url(#avsk)"/>
+          <path d="M11.4 14.5 C11 8.5 14 7 18 7 C23 7 25.4 9 24.7 14.2 C23.8 11.4 21.8 10.6 18.4 10.8 C15 11 13 11.6 11.4 14.5Z" fill="#2A211C"/>
+        </svg>
+      </div>
+      <div id="name">Danny</div>
+      <div id="sub">last seen Monday at 11:52 AM</div>
+      <div id="navicons">
+        <svg width="26" height="20" viewBox="0 0 26 20"><rect x="1" y="3" width="16" height="14" rx="3.5" fill="none" stroke="#000" stroke-width="1.7"/><path d="M17.5 8.2 L24.2 4.4 V15.6 L17.5 11.8" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <svg width="21" height="21" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="bar"><div class="inner">
+    <svg id="plus" width="28" height="28" viewBox="0 0 28 28"><path d="M14 5 V23 M5 14 H23" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+    <div id="field"><span id="txt"></span><span id="caret"></span>
+      <svg id="sticker" width="21" height="21" viewBox="0 0 22 22"><path d="M13.5 2.5 H6.5 a4 4 0 0 0 -4 4 v9 a4 4 0 0 0 4 4 h7 L19.5 13.5 V6.5 a4 4 0 0 0 -4 -4 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 19.5 V16 a2.5 2.5 0 0 1 2.5 -2.5 H19.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </div>
+    <svg id="cam" width="27" height="23" viewBox="0 0 27 23"><path d="M3.5 6 h4 l2-3 h8 l2 3 h4 a2 2 0 0 1 2 2 v11 a2 2 0 0 1 -2 2 h-20 a2 2 0 0 1 -2 -2 v-11 a2 2 0 0 1 2 -2 z" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/><circle cx="13.5" cy="13" r="4.4" fill="none" stroke="#000" stroke-width="1.7"/></svg>
+    <svg id="mic" width="20" height="26" viewBox="0 0 20 26"><rect x="6" y="1.5" width="8" height="14" rx="4" fill="none" stroke="#000" stroke-width="1.7"/><path d="M2.5 11.5 a7.5 7.5 0 0 0 15 0 M10 19 V24" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <div id="send"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M2.2 2.4 L16 9 L2.2 15.6 L3.9 9 Z" fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.9 9 H9" stroke="#1DAA61" stroke-width="1.3"/></svg></div>
+  </div></div>
+
+  <div id="kb">
+    <div id="pred"></div>
+    <div class="layer" id="abc"></div>
+    <div class="layer" id="num" style="display:none"></div>
+    <svg style="position:absolute;left:21px;top:268px" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11.5" fill="none" stroke="#50555C" stroke-width="1.8"/><circle cx="10" cy="11.5" r="1.5" fill="#50555C"/><circle cx="18" cy="11.5" r="1.5" fill="#50555C"/><path d="M8.6 16.2 c1.4 3 9.4 3 10.8 0" fill="none" stroke="#50555C" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg style="position:absolute;left:350px;top:267px" width="22" height="30" viewBox="0 0 20 26"><rect x="6" y="1.5" width="8" height="14" rx="4" fill="none" stroke="#50555C" stroke-width="1.8"/><path d="M2.5 11.5 a7.5 7.5 0 0 0 15 0 M10 19 V24" fill="none" stroke="#50555C" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div id="popup"><div class="bulb"></div><div class="neck"></div><div class="stem"></div></div>
+  </div>
+
+  <div id="waCam">
+    <canvas id="waCanvas" width="886" height="1920" style="position:absolute;left:0;top:0;width:393px;height:852px"></canvas>
+    <svg class="cbtn" style="left:18px;top:62px" width="24" height="24" viewBox="0 0 24 24"><path d="M5 5 19 19 M19 5 5 19" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <svg class="cbtn" style="left:351px;top:60px" width="24" height="28" viewBox="0 0 24 28"><path d="M14 2 4 16h7l-2 10 11-15h-7l3-9Z" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"/><path d="M3 3 21 25" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
+    <div id="waStrip"></div>
+    <div id="waShut"></div>
+    <svg class="cbtn" style="left:40px;top:732px" width="34" height="30" viewBox="0 0 34 30"><rect x="1.5" y="5" width="25" height="22" rx="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M7 2h20a5 5 0 0 1 5 5v15" fill="none" stroke="#fff" stroke-width="2"/><path d="M3 24l7-8 5 5 3-3 7 7" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+    <svg class="cbtn" style="left:322px;top:731px" width="34" height="32" viewBox="0 0 34 32"><path d="M4 10h5l2.5-4h11L25 10h5a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2Z" fill="none" stroke="#fff" stroke-width="2"/><path d="M11 19a6 6 0 0 1 10.5-3.5M23 19a6 6 0 0 1-10.5 3.5" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M21.5 13v3h-3M12.5 25v-3h3" fill="none" stroke="#fff" stroke-width="1.9"/></svg>
+    <div id="waModes"><span style="color:rgba(255,255,255,.75);margin-right:22px">Video</span><span style="color:#FFD60A">Photo</span></div>
+  </div>
+  <div id="waPrev">
+    <img id="prevImg">
+    <svg class="cbtn" style="left:18px;top:62px" width="24" height="24" viewBox="0 0 24 24"><path d="M5 5 19 19 M19 5 5 19" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <div style="position:absolute;right:14px;top:58px;display:flex;gap:20px;align-items:center">
+      <div style="font-size:12px;font-weight:700;border:1.8px solid #fff;border-radius:5px;padding:1px 4px">HD</div>
+      <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 2v16h16M2 6h16v16" fill="none" stroke="#fff" stroke-width="2"/></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h7l7-7V7a4 4 0 0 0-4-4Z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="9" cy="10" r="1.3" fill="#fff"/><circle cx="15" cy="10" r="1.3" fill="#fff"/></svg>
+      <div style="font-size:22px;font-weight:500;line-height:24px">T</div>
+      <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+    <div id="capt"><svg style="position:absolute;left:12px" width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12 8v8M8 12h8" stroke="#fff" stroke-width="1.8"/></svg>Add a caption…</div>
+    <div id="recip">Danny</div>
+    <div id="prevSend"><svg width="22" height="22" viewBox="0 0 18 18"><path d="M2.2 2.4 L16 9 L2.2 15.6 L3.9 9 Z" fill="#fff"/></svg></div>
+  </div>
+</div></div>
+
+  <div id="camApp">
+    <canvas id="vfCanvas" width="886" height="1181" style="position:absolute;left:0;top:104px;width:393px;height:524px"></canvas>
+    <div id="vfBlack"></div><div id="shutFx"></div>
+    <div class="cbtn" id="flashBtn" style="left:20px;top:56px;width:34px;height:34px"></div>
+    <div class="cbtn" id="nightBtn" style="left:66px;top:58px;height:30px"></div>
+    <svg class="cbtn" style="left:183px;top:66px" width="26" height="14" viewBox="0 0 26 14"><path d="M3 11 13 4l10 7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="cbtn" style="left:345px;top:56px" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="16" cy="16" r="12.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="1.5 2.4"/></svg>
+    <div id="flashPill">FLASH ON</div>
+    <div id="zoomRow"><div class="zb">.5</div><div class="zb" style="color:#FFD60A;width:44px;height:44px;margin-top:-3px;font-size:13.5px">1×</div><div class="zb">2</div></div>
+    <div id="modes"></div>
+    <div id="shutter"><div id="shutterIn"></div></div>
+    <div id="thumb"></div>
+    <div id="flip" class="cbtn"><svg width="28" height="24" viewBox="0 0 28 24"><path d="M5 9a9 9 0 0 1 16-3l1.5 2M23 15a9 9 0 0 1-16 3l-1.5-2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M23.5 3.5v5h-5M4.5 20.5v-5h5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  </div>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, x) => a + (b - a) * x;
+const easeOut3 = (x) => 1 - Math.pow(1 - x, 3);
+const easeOut4 = (x) => 1 - Math.pow(1 - x, 4);
+const easeInOut = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+// ---------- emoji (drawn in SVG; no emoji font in the render sandbox) ----------
+const EMOJI = {
+  '😭': `<svg viewBox="0 0 64 64"><defs>
+      <radialGradient id="fy" cx="0.45" cy="0.35" r="0.7"><stop offset="0" stop-color="#FFE873"/><stop offset="0.65" stop-color="#FFCB2E"/><stop offset="1" stop-color="#F5A300"/></radialGradient>
+      <linearGradient id="tb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FD4FF"/><stop offset="1" stop-color="#2D8FEA"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="30" fill="url(#fy)"/>
+      <path d="M13.5 27 C12.5 38 10.5 50 12 61 C15 62.5 19 63 22.5 62.5 C22 50 22.5 38 22 27 Z" fill="url(#tb)"/>
+      <path d="M50.5 27 C51.5 38 53.5 50 52 61 C49 62.5 45 63 41.5 62.5 C42 50 41.5 38 42 27 Z" fill="url(#tb)"/>
+      <path d="M11.5 25.5 Q18 19 25.5 24.5" fill="none" stroke="#5B3A0C" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M52.5 25.5 Q46 19 38.5 24.5" fill="none" stroke="#5B3A0C" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M21 38 Q32 33.5 43 38 Q44.5 51 32 52.5 Q19.5 51 21 38 Z" fill="#5C2A0E"/>
+      <path d="M25 48.5 Q32 44.5 39 48.5 Q36 52 32 52.3 Q28 52 25 48.5Z" fill="#E8546A"/>
+      <path d="M22.5 38.2 Q32 35.5 41.5 38.2 L41 40.5 Q32 38 23 40.5Z" fill="#fff"/></svg>`,
+  '👍': `<svg viewBox="0 0 64 64"><defs>
+      <linearGradient id="hy" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#FFDB4D"/><stop offset="1" stop-color="#F7B500"/></linearGradient></defs>
+      <path d="M9 34 C9 30.5 11 28.6 14.5 28.6 L20.6 28.6 L27 12 C28.6 7.8 31 5 34.4 5.4 C38.4 5.9 39.4 10 38.2 14.6 L36.4 23.6 L50 23.6 C55.6 23.6 57.2 29.6 53.2 32.2 C57.4 33.6 57.4 39.8 52.6 41 C56.4 42.8 55.8 48.6 51.2 49.6 C54.2 51.8 52.8 57.6 47.8 57.6 L17 57.6 C12 57.6 9 55 9 51 Z" fill="url(#hy)" stroke="#E49B00" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M40 32.3 L53 32.3 M40.5 41 L52.5 41 M40 49.6 L51 49.6" stroke="#E49B00" stroke-width="1.8" stroke-linecap="round"/></svg>`
+};
+function emojify(text) {
+  return text.replace(/😭|👍/g, (m) => `<span class="emo">${EMOJI[m]}</span>`);
+}
+
+// ---------- ticks ----------
+function ticks(kind) {
+  if (kind === 'clock') return `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.2" fill="none" stroke="#8696A0" stroke-width="1.2"/><path d="M6.5 3.6 V6.7 L8.6 7.9" fill="none" stroke="#8696A0" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+  const c = kind === 'read' ? '#53BDEB' : '#8696A0';
+  if (kind === 'sent') return `<svg width="13" height="11" viewBox="0 0 13 11"><path d="M11.4 1.2 L4.6 8.6 L1.6 5.6" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg width="17" height="11" viewBox="0 0 17 11"><path d="M11.2 1.2 L4.4 8.6 L1.4 5.6" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6 1.2 L8.8 8.6 L7.7 7.5" fill="none" stroke="${c}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+const TAIL = `<svg class="tail" viewBox="0 0 13 17"><path d="M0 0 H6 C6 8 7.6 13 12.6 16.6 C7 17.3 2.6 15.8 0 13.6 Z" fill="currentColor"/></svg>`;
+
+// ---------- conversation ----------
+const MSGS = [
+  { from: 'me', text: 'ok I’m gonna try to finish it tonight', time: '10:02 PM', tk: 'read' },
+  { from: 'd',  text: 'good luck lmao', time: '10:05 PM' },
+  { pill: 'Monday', id: 'pMon' },
+  { from: 'd',  text: 'Did you ever finish that poster last night?', time: '9:18 AM' },
+  { from: 'me', text: 'Barely 😭', time: '9:20 AM', tk: 'read' },
+  { from: 'me', text: 'I went to bed at like 3.', time: '9:20 AM', tk: 'read' },
+  { from: 'd',  text: 'Knew it lol', time: '9:20 AM' },
+  { from: 'd',  text: 'Send it to me when you get to campus', time: '9:21 AM' },
+  { from: 'me', text: 'Yeah yeah', time: '9:21 AM', tk: 'read', id: 'mYeah' },
+  { from: 'd',  text: 'btw I’m not coming to club this afternoon', time: '11:47 AM' },
+  { from: 'me', text: 'Why?', time: '11:48 AM', tk: 'read' },
+  { from: 'd',  text: 'I left the box with the display stuff at my dad’s old place', time: '11:49 AM' },
+  { from: 'd',  text: 'the printed boards + a bunch of the materials are still there', time: '11:49 AM' },
+  { from: 'd',  text: 'Need to go pick them up before I forget again', time: '11:49 AM' },
+  { from: 'me', text: 'That old house?', time: '11:50 AM', tk: 'read' },
+  { from: 'd',  text: 'Yeah', time: '11:50 AM' },
+  { from: 'd',  text: 'Haven’t been back there in ages lol', time: '11:51 AM' },
+  { from: 'me', text: 'Alright', time: '11:51 AM', tk: 'read' },
+  { from: 'me', text: 'See you tomorrow then', time: '11:51 AM', tk: 'read' },
+  { from: 'd',  jumbo: '👍', time: '11:52 AM', id: 'mThumb' },
+  { pill: 'Wednesday' },
+  { from: 'me', text: 'You alive?', time: '2:36 PM', tk: 'delivered' },
+  { pill: 'Thursday' },
+  { from: 'me', text: 'Hey, you haven’t been in class either', time: '8:14 PM', tk: 'delivered' },
+  { from: 'me', text: 'Everything okay?', time: '8:14 PM', tk: 'delivered' },
+  { pill: 'Today' },
+  { from: 'me', text: 'I’m coming over to check on you.', time: '6:41 PM', tk: 'sent', id: 'mLast' },
+];
+const NEW_TXT = { from: 'me', text: 'I’m here.', time: '8:24 PM' };
+
+function bubbleHTML(m, first, last, tkHTML) {
+  const color = m.from === 'me' ? '#D9FDD3' : '#FFFFFF';
+  const spW = m.from === 'me' ? (m.time.length > 7 ? 78 : 72) : (m.time.length > 7 ? 56 : 50);
+  const meta = `<span class="meta">${m.time}${m.from === 'me' ? `<span class="tk">${tkHTML}</span>` : ''}</span>`;
+  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${emojify(m.text)}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
+}
+
+function buildChat() {
+  const c = $('content');
+  let html = '<div style="height:400px"></div>';
+  for (let i = 0; i < MSGS.length; i++) {
+    const m = MSGS[i];
+    if (m.pill) { html += `<div class="pillrow"${m.id ? ` id="${m.id}"` : ''}><div class="pill">${m.pill}</div></div>`; continue; }
+    const prev = MSGS[i - 1], next = MSGS[i + 1];
+    const first = !prev || prev.pill || prev.from !== m.from;
+    const last = !next || next.pill || next.from !== m.from;
+    const cls = `row ${m.from} ${first ? (prev && prev.pill ? '' : 'gap') : 'tight'}`;
+    if (m.jumbo) {
+      html += `<div class="${cls}"${m.id ? ` id="${m.id}"` : ''}><div class="jumbo"><svg class="big" viewBox="0 0 64 64">${EMOJI[m.jumbo].replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg><div class="jmeta">${m.time}</div></div></div>`;
+    } else {
+      html += `<div class="${cls}"${m.id ? ` id="${m.id}"` : ''}>${bubbleHTML(m, first, last, ticks(m.tk))}</div>`;
+    }
+  }
+  // the message typed at the end of the video (collapsed until sent)
+  html += `<div id="phWrap" style="height:0;overflow:hidden"><div id="phInner" style="padding-top:8px">
+      <div class="row me" id="phRow"><div class="fail" id="phFail">!</div><div class="b tailed imgb">
+        <img id="phImg" class="phimg"><div class="phOv" id="phOv"></div>
+        <span class="imeta">8:24 PM<span id="phTk"></span></span><span style="color:#D9FDD3">${TAIL}</span></div></div>
+    </div></div>`;
+  html += `<div id="txWrap" style="height:0;overflow:hidden"><div id="txInner" style="padding-top:2px">
+      <div class="row me" id="txRow"><div class="fail" id="txFail">!</div>${bubbleHTML(NEW_TXT, true, true, '<span id="txTk"></span>')}</div>
+    </div></div>`;
+  html += '<div style="height:8px"></div>';
+  c.innerHTML = html;
+}
+
+// ---------- wallpaper doodles ----------
+function buildWall() {
+  const r = rng(7);
+  const S = 240; let g = '';
+  const col = '#DCD2C4';
+  for (let i = 0; i < 46; i++) {
+    const x = r() * S, y = r() * S, s = 7 + r() * 7, rot = r() * 360, k = Math.floor(r() * 8);
+    let p = '';
+    if (k === 0) p = `<circle cx="0" cy="0" r="${s * 0.7}"/>`;
+    else if (k === 1) p = `<path d="M0 ${s*0.6} C${-s} ${-s*0.2} ${-s*0.3} ${-s} 0 ${-s*0.3} C${s*0.3} ${-s} ${s} ${-s*0.2} 0 ${s*0.6}Z"/>`;
+    else if (k === 2) p = `<path d="M0 ${-s} L${s*0.3} ${-s*0.3} L${s} ${-s*0.3} L${s*0.45} ${s*0.15} L${s*0.65} ${s} L0 ${s*0.5} L${-s*0.65} ${s} L${-s*0.45} ${s*0.15} L${-s} ${-s*0.3} L${-s*0.3} ${-s*0.3}Z"/>`;
+    else if (k === 3) p = `<rect x="${-s*0.6}" y="${-s*0.6}" width="${s*1.2}" height="${s*1.2}" rx="${s*0.3}"/>`;
+    else if (k === 4) p = `<path d="M${-s} 0 Q${-s*0.5} ${-s} 0 0 T${s} 0"/>`;
+    else if (k === 5) p = `<path d="M${-s*0.4} ${s*0.7} V${-s*0.6} L${s*0.6} ${-s*0.8} V${s*0.4}"/><circle cx="${-s*0.6}" cy="${s*0.7}" r="${s*0.25}"/><circle cx="${s*0.4}" cy="${s*0.4}" r="${s*0.25}"/>`;
+    else if (k === 6) p = `<path d="M${-s*0.8} ${s*0.3} a${s*0.4} ${s*0.4} 0 0 1 ${s*0.3} ${-s*0.75} a${s*0.5} ${s*0.5} 0 0 1 ${s*0.9} ${-s*0.1} a${s*0.38} ${s*0.38} 0 0 1 ${s*0.4} ${s*0.85}Z"/>`;
+    else p = `<path d="M${s*0.3} ${-s*0.8} A${s*0.8} ${s*0.8} 0 1 0 ${s*0.3} ${s*0.8} A${s*0.6} ${s*0.6} 0 1 1 ${s*0.3} ${-s*0.8}Z"/>`;
+    g += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(0)})">${p}</g>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}"><g fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${g}</g></svg>`;
+  $('wall').style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+}
+
+// ---------- keyboard ----------
+const KB_H = 330;
+const KEYS = {};   // id -> {el, x, y, w, h, layer, kind}
+function addKey(layer, id, label, x, y, w, h, kind) {
+  const el = document.createElement('div');
+  el.className = 'key' + (kind === 'sp' ? ' sp' : '') + (kind === 'small' ? ' small' : '');
+  el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  el.innerHTML = label;
+  $(layer).appendChild(el);
+  KEYS[layer + ':' + id] = { el, x, y, w, h, layer, kind, label };
+  return el;
+}
+const SHIFT_OFF = `<svg width="20" height="19" viewBox="0 0 20 19"><path d="M10 1.5 L18.5 10 H13.5 V17.5 H6.5 V10 H1.5 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const SHIFT_ON  = `<svg width="20" height="19" viewBox="0 0 20 19"><path d="M10 1.5 L18.5 10 H13.5 V17.5 H6.5 V10 H1.5 Z" fill="#000" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const DEL = `<svg width="25" height="18" viewBox="0 0 25 18"><path d="M8 1.5 H21.5 a2 2 0 0 1 2 2 V14.5 a2 2 0 0 1 -2 2 H8 L1.5 9 Z" fill="none" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M11.5 5.5 L18 12 M18 5.5 L11.5 12" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+function buildKeyboard() {
+  const W = 393, kw = 33.3, g = 6, kh = 42, rows = [52, 106, 160, 214];
+  'qwertyuiop'.split('').forEach((c, i) => addKey('abc', c, c, 3 + i * (kw + g), rows[0], kw, kh));
+  const r2 = (W - (9 * kw + 8 * g)) / 2;
+  'asdfghjkl'.split('').forEach((c, i) => addKey('abc', c, c, r2 + i * (kw + g), rows[1], kw, kh));
+  const r3 = (W - (7 * kw + 6 * g)) / 2;
+  'zxcvbnm'.split('').forEach((c, i) => addKey('abc', c, c, r3 + i * (kw + g), rows[2], kw, kh));
+  addKey('abc', 'SHIFT', SHIFT_ON, 3, rows[2], 42, kh, 'sp');
+  addKey('abc', 'BS', DEL, W - 45, rows[2], 42, kh, 'sp');
+  addKey('abc', '123', '123', 3, rows[3], 88, kh, 'sp');
+  addKey('abc', 'SP', 'space', 97, rows[3], 199, kh, 'small');
+  addKey('abc', 'RET', 'return', 302, rows[3], 88, kh, 'sp');
+  // number layer
+  '1234567890'.split('').forEach((c, i) => addKey('num', c, c, 3 + i * (kw + g), rows[0], kw, kh));
+  ['-', '/', ':', ';', '(', ')', '$', '&amp;', '@', '“'].forEach((c, i) => addKey('num', 'n' + i, c, 3 + i * (kw + g), rows[1], kw, kh));
+  addKey('num', 'SYM', '#+=', 3, rows[2], 47, kh, 'sp');
+  const pw = (W - 3 - 47 - 6 - 47 - 3 - 6 - 4 * 6) / 5;
+  ['.', ',', '?', '!', '’'].forEach((c, i) => addKey('num', c === '.' ? '.' : 'p' + i, c, 56 + i * (pw + g), rows[2], pw, kh));
+  addKey('num', 'BS', DEL, W - 50, rows[2], 47, kh, 'sp');
+  addKey('num', 'ABC', 'ABC', 3, rows[3], 88, kh, 'sp');
+  addKey('num', 'SP', 'space', 97, rows[3], 199, kh, 'small');
+  addKey('num', 'RET', 'return', 302, rows[3], 88, kh, 'sp');
+  // predictive bar
+  $('pred').innerHTML = `<div class="pc" id="pc0" style="left:4px"></div><div class="pdiv" style="left:131px"></div>
+    <div class="pc" id="pc1" style="left:134px"></div><div class="pdiv" style="left:261px"></div><div class="pc" id="pc2" style="left:264px"></div>`;
+}
+
+// ---------- typing helpers (shared with video 1) ----------
+function textState(t) {
+  let text = '', layer = 'abc', sent = false, lastAct = -10;
+  for (const a of SCRIPT) {
+    if (a.t > t) break;
+    lastAct = a.t;
+    const shift = text === '' && layer === 'abc';
+    if (a.k === 'BS') text = text.slice(0, -1);
+    else if (a.k === 'SP') {
+      const m = text.match(/(\S+)$/);
+      if (m && AUTOCORRECT[m[1]]) text = text.slice(0, -m[1].length) + AUTOCORRECT[m[1]];
+      text += ' ';
+    }
+    else if (a.k === '123') layer = 'num';
+    else if (a.k === 'ABC') layer = 'abc';
+    else if (a.k === 'SEND') { sent = true; text = ''; layer = 'abc'; }
+    else text += (shift ? a.k.toUpperCase() : a.k);
+  }
+  const shift = text === '' && layer === 'abc';
+  return { text, layer, shift, sent, lastAct };
+}
+function suggestions(text) {
+  if (text === '') return { s: ['I', 'Hey', 'The'], hl: -1 };
+  if (/[.?!]$/.test(text)) return { s: ['I', 'Thanks', 'Ok'], hl: -1 };
+  const m = text.match(/(\S*)$/); const w = m[1];
+  if (w === '') {
+    const prev = (text.trim().split(/\s+/).pop()) || '';
+    return { s: NEXT[prev] || ['the', 'to', 'I'], hl: -1 };
+  }
+  if (AUTOCORRECT[w]) return { s: [`“${w}”`, AUTOCORRECT[w], w === 'Im' ? 'In' : 'checks'], hl: 1 };
+  const c = DICT.filter((d) => d.toLowerCase().startsWith(w.toLowerCase()) && d !== w);
+  return { s: [`“${w}”`, c[0] || w, c[1] || ''], hl: -1 };
+}
+
+
+function kbRender(t, kbP, st) {
+  // keyboard layer + keys
+  if (kbP > 0) {
+    if (st.layer !== lastLayer) {
+      $('abc').style.display = st.layer === 'abc' ? 'block' : 'none';
+      $('num').style.display = st.layer === 'num' ? 'block' : 'none';
+      lastLayer = st.layer;
+    }
+    for (const k of Object.values(KEYS)) {
+      if (k.layer === 'abc' && k.label.length === 1) k.el.textContent = st.shift ? k.label.toUpperCase() : k.label;
+      k.el.classList.remove('pressedW', 'pressedG');
+    }
+    const sh = KEYS['abc:SHIFT'];
+    sh.el.innerHTML = st.shift ? SHIFT_ON : SHIFT_OFF;
+    sh.el.style.background = st.shift ? '#fff' : '#ABB0BC';
+
+    // pressed key + popup
+    const pop = $('popup');
+    pop.style.display = 'none';
+    const act = SCRIPT.find((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
+    if (act) {
+      // the key that was pressed belongs to the layer active *before* the action
+      const before = textState(act.t - 0.0001);
+      const layer = before.layer;
+      const id = act.k.length === 1 ? act.k.toLowerCase() : act.k;
+      const key = KEYS[layer + ':' + id];
+      if (key) {
+        if (key.kind === 'sp' || key.kind === 'small') {
+          key.el.classList.add(key.kind === 'small' ? 'pressedG' : 'pressedW');
+        } else {
+          const lbl = layer === 'abc' ? (before.shift ? id.toUpperCase() : id) : key.label;
+          const bw = key.w + 22, bh = 54;
+          const left = clamp(key.x - 11, 1, 393 - bw - 1);
+          pop.style.display = 'block';
+          pop.style.left = '0px'; pop.style.top = '0px';
+          const bulb = pop.querySelector('.bulb'), stem = pop.querySelector('.stem'), neck = pop.querySelector('.neck');
+          bulb.style.cssText = `left:${left}px;top:${key.y - bh - 10}px;width:${bw}px;height:${bh}px`;
+          bulb.textContent = lbl;
+          neck.style.cssText = `left:${key.x}px;top:${key.y - 14}px;width:${key.w}px;height:16px`;
+          stem.style.cssText = `left:${key.x}px;top:${key.y}px;width:${key.w}px;height:${key.h}px`;
+        }
+      }
+    }
+    // predictive text bar
+    const sg = suggestions(st.text);
+    for (let i = 0; i < 3; i++) {
+      const el = $('pc' + i);
+      el.textContent = sg.s[i] || '';
+      el.classList.toggle('hl', sg.hl === i);
+    }
+  }
+
+}
+
+// ======================= VIDEO 2 =======================
+// 8:23 PM outside Danny's dad's old house: wake phone -> swipe to Camera -> flash on -> photo ->
+// close camera -> unlock -> WhatsApp -> send photo + "I'm here." -> no service, both fail.
+
+const V = {
+  wake: 0.45, camSwipe: [2.35, 2.8], camLive: 3.0,
+  barsDip: 4.9, flashTap: 5.5, sigDrop: 6.6, shot: 7.7,
+  closeCam: [10.3, 10.75], faceId: 10.95, unlock: [11.85, 12.35],
+  minute: 12.9, waTap: 13.55, launch: [13.67, 14.12],
+  camIcon: 16.0, waCamIn: [16.05, 16.42], pick: 18.1, prevIn: [18.15, 18.45],
+  prevSend: 20.1, prevOut: [20.15, 20.45], field: 21.9, kb: [21.95, 22.35],
+};
+const SHOT = { pre: V.shot + 0.1, main: V.shot + 0.42, blink: V.shot + 0.47, thumb: V.shot + 0.62 };
+
+// ---- typing ----
+const SCRIPT = [];
+const T = {};
+(function () {
+  const r = rng(77);
+  let t = 22.85;
+  const tap = (k, dt) => { SCRIPT.push({ t, k }); t += dt; };
+  for (const ch of 'Im') tap(ch, 0.19 + r() * 0.1);
+  tap('SP', 0.24);
+  for (const ch of 'here') tap(ch, 0.17 + r() * 0.1);
+  t += 0.2;
+  tap('123', 0.38); tap('.', 0.2);
+  t += 0.75;
+  T.send = t; SCRIPT.push({ t, k: 'SEND' });
+})();
+V.txSent = T.send;
+V.phFail = T.send + 3.6;
+V.txFail = T.send + 6.1;
+const END = T.send + 10.2;
+window.DURATION = END;
+
+const AUTOCORRECT = { 'Im': 'I’m' };
+const DICT = ['I', 'I’m', 'In', 'It', 'here', 'hey', 'her', 'help', 'hers', 'heading'];
+const NEXT = { 'I’m': ['here', 'so', 'outside'] };
+
+// ---------- photo of the house (rendered once, same for every worker) ----------
+const BASE = { cam: [0.35, 1.55, 7.6], target: [0.2, 2.75, 0], fov: 65 };
+const BASE_WA = { cam: [0.4, 1.45, 7.9], target: [0.25, 2.6, 0], fov: 82 };
+let drawVF = null, drawWA = null, PHOTO = '';
+function makePhoto() {
+  const c = document.createElement('canvas'); c.width = 886; c.height = 1181;
+  const draw = HOUSE3D.create(c);
+  draw({ ...HOUSE3D.handheld(SHOT.main, BASE, 0.6), exposure: 1.0, flash: 1, grain: 0.035, seed: 9, desat: 0.05 });
+  return c.toDataURL('image/jpeg', 0.92);
+}
+
+// ---------- layout ----------
+const L = {};
+function measure() {
+  L.H = $('content').offsetHeight;
+  L.phH = $('phInner').offsetHeight;
+  L.txH = $('txInner').offsetHeight;
+}
+const BAR_H0 = 50, SAFE = 34, SCREEN_H = 852;
+function barTopFor(kbP, barH) {
+  const kbTop = SCREEN_H - KB_H * kbP;
+  return kbP > 0 ? Math.min(SCREEN_H - SAFE - barH, kbTop - barH) : SCREEN_H - SAFE - barH;
+}
+
+const MODES = [['SLO-MO', 52], ['VIDEO', 128], ['PHOTO', 196.5], ['PORTRAIT', 274], ['PANO', 349]];
+const FLASH_OFF = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="14" fill="rgba(40,40,40,.65)"/><path d="M16.5 6 9.5 16h5l-1.5 8 7.5-10.5h-5l1.5-7.5Z" fill="#fff"/><path d="M8 7l14 16" stroke="rgba(40,40,40,1)" stroke-width="3.4"/><path d="M8 7l14 16" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+const FLASH_ON = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="14" fill="#FFD60A"/><path d="M16.5 6 9.5 16h5l-1.5 8 7.5-10.5h-5l1.5-7.5Z" fill="#000"/></svg>`;
+const NIGHT = `<div style="display:flex;align-items:center;gap:3px;background:#FFD60A;color:#000;border-radius:15px;height:28px;padding:0 9px 0 6px;font-size:13px;font-weight:700">
+  <svg width="17" height="17" viewBox="0 0 18 18"><path d="M11 2a7 7 0 1 0 5 11 5.6 5.6 0 0 1-5-11Z" fill="#000"/></svg>3s</div>`;
+const RING = (p) => `<svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="25" fill="rgba(0,0,0,.45)"/>
+  <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3"/>
+  <circle cx="26" cy="26" r="20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(125.7 * p).toFixed(1)} 200" transform="rotate(-90 26 26)"/>
+  <path d="M20 20 32 32M32 20 20 32" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>`;
+const RETRY = `<div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:18px;height:36px;padding:0 15px 0 11px;font-size:15px;font-weight:600">
+  <svg width="16" height="18" viewBox="0 0 16 18"><path d="M8 16V3M3 8l5-5 5 5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Retry</div>`;
+const WHITE_CLOCK = `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.2" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 3.6 V6.7 L8.6 7.9" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+
+function setOnce(el, key, html) { if (el.dataset.k !== key) { el.innerHTML = html; el.dataset.k = key; } }
+const ease = (t, a, b, f = easeOut3) => f(clamp((t - a) / (b - a), 0, 1));
+let lastLayer = '';
+
+// ---------- one frame ----------
+window.render = function (t) {
+  // ===== chat (inside #app) =====
+  const kbP = ease(t, V.kb[0], V.kb[1], easeOut4);
+  $('kb').style.top = (SCREEN_H - KB_H * kbP) + 'px';
+  $('kb').style.display = kbP > 0 ? 'block' : 'none';
+  const st = textState(t);
+  const typing = st.text.length > 0;
+  $('txt').textContent = st.text;
+  $('field').style.width = (typing ? 294 : 246) + 'px';
+  $('cam').style.display = typing ? 'none' : 'block';
+  $('mic').style.display = typing ? 'none' : 'block';
+  $('send').style.display = typing ? 'flex' : 'none';
+  const since = t - st.lastAct;
+  $('caret').style.opacity = kbP > 0.6 && (since < 0.45 || Math.floor((since - 0.45) / 0.5) % 2 === 1) ? 1 : 0;
+  $('caret').style.display = kbP > 0 ? 'inline-block' : 'none';
+  const barH = Math.max(BAR_H0, $('field').offsetHeight + 14);
+  const barTop = barTopFor(kbP, barH);
+  $('bar').style.top = barTop + 'px';
+  $('bar').style.height = (SCREEN_H - barTop) + 'px';
+  $('bar').querySelector('.inner').style.height = barH + 'px';
+  $('cam').classList.toggle('press', t >= V.camIcon && t < V.camIcon + 0.12);
+  $('send').classList.toggle('press', t >= T.send && t < T.send + 0.1);
+
+  // photo message
+  const gp = t >= V.prevOut[1] ? ease(t, V.prevOut[1], V.prevOut[1] + 0.26) : 0;
+  $('phWrap').style.height = (L.phH * gp) + 'px';
+  $('phRow').style.opacity = clamp(gp * 1.6, 0, 1);
+  $('phRow').style.transform = `translateY(${(1 - gp) * 14}px)`;
+  const phFailed = t >= V.phFail;
+  const up = clamp((t - V.prevOut[1] - 0.3) / 1.6, 0, 1);
+  setOnce($('phOv'), phFailed ? 'f' : 'r' + Math.round(up * 40), phFailed ? RETRY : RING(0.03 + 0.09 * easeOut3(up)));
+  setOnce($('phTk'), 'c', WHITE_CLOCK);
+  $('phFail').style.visibility = phFailed ? 'visible' : 'hidden';
+  $('phFail').style.transform = `scale(${phFailed ? 1 + 0.25 * Math.max(0, 1 - (t - V.phFail) / 0.18) : 1})`;
+
+  // text message
+  const gt = t >= T.send ? ease(t, T.send, T.send + 0.24) : 0;
+  $('txWrap').style.height = (L.txH * gt) + 'px';
+  $('txRow').style.opacity = clamp(gt * 1.6, 0, 1);
+  $('txRow').style.transform = `translateY(${(1 - gt) * 14}px)`;
+  setOnce($('txTk'), 'c', ticks('clock'));
+  const txFailed = t >= V.txFail;
+  $('txFail').style.visibility = txFailed ? 'visible' : 'hidden';
+  $('txFail').style.transform = `scale(${txFailed ? 1 + 0.25 * Math.max(0, 1 - (t - V.txFail) / 0.18) : 1})`;
+
+  const H = L.H + L.phH * gp + L.txH * gt;
+  $('content').style.transform = `translateY(${(barTop - H).toFixed(2)}px)`;
+  $('down').style.opacity = 0;
+  kbRender(t, kbP, st);
+
+  // ===== WhatsApp camera + preview (inside #app) =====
+  const wc = t < V.waCamIn[0] ? 0 : ease(t, V.waCamIn[0], V.waCamIn[1], easeOut4);
+  const waCamOn = wc > 0 && t < V.prevIn[1];
+  $('waCam').style.display = waCamOn ? 'block' : 'none';
+  if (waCamOn) {
+    $('waCam').style.transform = `translateY(${(1 - wc) * 852}px)`;
+    drawWA({ ...HOUSE3D.handheld(t, BASE_WA, 1.2), exposure: 2.7, grain: 0.07, seed: Math.floor(t * 30), desat: 0.5, moon: 1 });
+    $('waStrip').firstChild.classList.toggle('press', t >= V.pick && t < V.pick + 0.15);
+  }
+  const pv = t < V.prevIn[0] ? 0 : ease(t, V.prevIn[0], V.prevIn[1]);
+  const po = t < V.prevOut[0] ? 0 : ease(t, V.prevOut[0], V.prevOut[1], easeInOut);
+  const prevOn = pv > 0 && po < 1;
+  $('waPrev').style.display = prevOn ? 'block' : 'none';
+  if (prevOn) {
+    $('waPrev').style.opacity = pv;
+    $('waPrev').style.transform = `translateY(${po * 852}px) scale(${0.96 + 0.04 * pv})`;
+    $('prevSend').classList.toggle('press', t >= V.prevSend && t < V.prevSend + 0.12);
+  }
+
+  // ===== iOS Camera app =====
+  const cs = t < V.camSwipe[0] ? 0 : ease(t, V.camSwipe[0], V.camSwipe[1], easeOut3);
+  const cc = t < V.closeCam[0] ? 0 : ease(t, V.closeCam[0], V.closeCam[1], easeOut3);
+  const camOn = cs > 0 && cc < 1;
+  $('camApp').style.display = camOn ? 'block' : 'none';
+  if (camOn) {
+    $('camApp').style.transform = `translate(${(1 - cs) * 393}px, ${-cc * 852}px) scale(${1 - 0.12 * cc})`;
+    $('camApp').style.borderRadius = cc > 0 ? '44px' : '0';
+    const live = clamp((t - V.camLive) / 0.3, 0, 1);
+    $('vfBlack').style.opacity = 1 - live;
+    const flashOn = t >= V.flashTap;
+    if (live > 0) {
+      let flash = 0, exposure = 2.7 * (0.8 + 0.2 * ease(t, V.camLive, V.camLive + 0.8)), grain = 0.07, desat = 0.45;
+      if (t >= SHOT.pre && t < SHOT.main + 0.07) {
+        const main = t >= SHOT.main;
+        flash = main ? 1 : 0.3; exposure = main ? 1.0 : 1.7; grain = main ? 0.03 : 0.06; desat = main ? 0.05 : 0.25;
+      }
+      drawVF({ ...HOUSE3D.handheld(t, BASE, t > V.shot - 0.6 && t < SHOT.main + 0.1 ? 0.6 : 1), exposure, flash, grain, desat, seed: Math.floor(t * 30), moon: 1 });
+    }
+    $('shutFx').style.opacity = t >= SHOT.blink && t < SHOT.blink + 0.09 ? 1 : 0;
+    setOnce($('flashBtn'), flashOn ? 'on' : 'off', flashOn ? FLASH_ON : FLASH_OFF);
+    $('flashBtn').style.transform = `scale(${t >= V.flashTap && t < V.flashTap + 0.15 ? 0.85 : 1})`;
+    setOnce($('nightBtn'), flashOn ? 'x' : 'n', flashOn ? '' : NIGHT);
+    $('flashPill').style.opacity = t < V.flashTap ? 0 : clamp(Math.min((t - V.flashTap) / 0.15, (V.flashTap + 1.5 - t) / 0.3), 0, 1);
+    const pressed = t >= V.shot && t < V.shot + 0.14;
+    $('shutterIn').style.transform = `scale(${pressed ? 0.86 : 1})`;
+    const th = $('thumb');
+    if (t >= SHOT.thumb) {
+      setOnce(th, 'p', `<img src="${PHOTO}">`);
+      const a = ease(t, SHOT.thumb, SHOT.thumb + 0.3);
+      th.firstChild.style.transform = `scale(${0.4 + 0.6 * a})`; th.firstChild.style.opacity = a;
+    } else setOnce(th, 'old', '<div style="width:100%;height:100%;background:linear-gradient(135deg,#d9c38a,#8a5a36 60%,#3b2a22)"></div>');
+  }
+
+  // ===== system: lock screen, home screen, app launch =====
+  const sw = t < V.unlock[0] ? 0 : ease(t, V.unlock[0], V.unlock[1], easeOut3);
+  const lp = t < V.launch[0] ? 0 : ease(t, V.launch[0], V.launch[1], easeOut4);
+  const lockVisible = sw < 1 && !(cs >= 1 && cc <= 0);
+  PHONE.lock(lockVisible ? { show: true, x: cc > 0 ? 0 : -cs * 393 * 0.35, y: -852 * sw, time: t < V.minute ? '8:23' : '8:24',
+    pad: t < V.closeCam[0] ? 0 : clamp((t - V.faceId) / 0.3, 0, 1), reveal: 1, hint: t > V.closeCam[1] ? clamp((t - V.faceId - 0.3) / 0.2, 0, 1) * (1 - sw) : 0,
+    fade: clamp(sw * 3, 0, 1) } : null);
+  PHONE.home(sw > 0 && lp < 1 ? { show: true, scale: (1.12 - 0.12 * sw) * (1 + 0.06 * lp), opacity: sw, dim: 0.25 * lp,
+    pressed: t >= V.waTap && t < V.launch[0] + 0.05 ? 'whatsapp' : null, hidden: lp > 0 ? 'whatsapp' : null } : null);
+  PHONE.launch(t < V.launch[0] ? 0 : (lp >= 1 ? null : lp));
+  PHONE.blackout(t < V.wake ? 1 : 1 - clamp((t - V.wake) / 0.16, 0, 1));
+
+  // ===== status bar =====
+  const inApp = lp > 0.55;
+  const noSvc = t >= V.sigDrop;
+  const bars = noSvc ? 0 : (t >= V.barsDip ? 1 : 2);
+  const onLockOnly = lockVisible && cs < 0.5 && sw < 0.5;
+  const fullscreenWA = (waCamOn && wc > 0.6) || (prevOn && po < 0.4);
+  PHONE.status({ show: t >= V.wake && !fullscreenWA, color: inApp ? '#000' : '#fff', time: t < V.minute ? '8:23' : '8:24',
+    carrier: onLockOnly || (lockVisible && cc >= 0.5 && sw < 0.5) ? (noSvc ? 'No Service' : 'T-Mobile') : null,
+    bars, net: noSvc ? null : '3G', battery: 3.9 });
+  PHONE.homeInd({ show: t >= V.wake && !fullscreenWA, color: inApp && !waCamOn ? '#000' : '#fff' });
+};
+
+// ---------- sound cues ----------
+function soundCues() {
+  const c = [];
+  c.push({ t: 0.05, k: 'shaky', g: 0.9 });
+  c.push({ t: V.wake - 0.04, k: 'button' });
+  c.push({ t: 1.2, k: 'exhale', g: 0.9 });
+  c.push({ t: V.camSwipe[0] - 0.05, k: 'swipe' });
+  c.push({ t: 3.7, k: 'shuffle', g: 0.9, d: 0.55 });
+  c.push({ t: 4.4, k: 'shaky', g: 0.85 });
+  c.push({ t: V.flashTap, k: 'tap' });
+  c.push({ t: V.shot - 1.05, k: 'inhale', g: 0.9 });
+  c.push({ t: V.shot, k: 'tap' });
+  c.push({ t: SHOT.main - 0.02, k: 'shutter' });
+  c.push({ t: SHOT.main + 0.8, k: 'exhale', g: 0.9 });
+  c.push({ t: 9.3, k: 'creak', g: 0.8, d: 1.0 });
+  c.push({ t: V.closeCam[0] - 0.05, k: 'swipe', g: 0.9 });
+  c.push({ t: V.unlock[0] - 0.05, k: 'swipe' });
+  c.push({ t: 12.8, k: 'shaky', g: 0.8 });
+  c.push({ t: V.waTap, k: 'tap' });
+  c.push({ t: 15.0, k: 'bark', g: 0.9 });
+  c.push({ t: V.camIcon, k: 'tap' });
+  c.push({ t: V.pick, k: 'tap' });
+  c.push({ t: 19.0, k: 'shuffle', g: 0.7, d: 0.5 });
+  c.push({ t: V.prevSend, k: 'tap' });
+  c.push({ t: V.field, k: 'tap' });
+  for (const a of SCRIPT) {
+    if (a.k === 'SEND') { c.push({ t: a.t, k: 'tap' }); continue; }
+    c.push({ t: a.t, k: ['SP', '123', 'ABC', 'RET', 'SHIFT'].includes(a.k) ? 'keyMod' : 'key' });
+  }
+  c.push({ t: V.phFail - 0.6, k: 'creak', g: 0.55, d: 0.8 });
+  c.push({ t: V.phFail + 0.5, k: 'shaky', g: 0.95 });
+  c.push({ t: V.txFail + 0.4, k: 'sigh', g: 0.95 });
+  c.push({ t: V.txFail + 2.4, k: 'bark', g: 0.6 });
+  c.push({ t: END - 1.6, k: 'inhale', g: 0.75 });
+  return c.filter((x) => x.t < END).sort((a, b) => a.t - b.t);
+}
+
+// ---------- init ----------
+buildWall(); buildChat(); buildKeyboard();
+PHONE.build($('screen'), {
+  date: 'Saturday, November 14', lockTime: '8:23', dayName: 'Saturday', dayNum: 14,
+  weather: { city: 'Portland', temp: 41, cond: 'Mostly Cloudy', hi: 52, lo: 38 },
+  badges: { instagram: 5, snapchat: 3, discord: 9, gmail: 31 },
+  notifs: [],
+});
+$('modes').innerHTML = MODES.map(([m, x]) => `<span style="left:${x}px;${m === 'PHOTO' ? 'color:#FFD60A' : ''}">${m}</span>`).join('');
+window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px LockClock')]).then(async () => {
+  PHOTO = makePhoto();
+  drawVF = HOUSE3D.create($('vfCanvas'));
+  drawWA = HOUSE3D.create($('waCanvas'));
+  const others = ['linear-gradient(160deg,#1b1b2f,#e94560 55%,#f5d76e)', 'linear-gradient(135deg,#d9c38a,#8a5a36 60%,#3b2a22)',
+    'linear-gradient(200deg,#89a7c2,#3e5a75 50%,#1d2a36)', 'linear-gradient(120deg,#f0e6d2,#c7a27c 50%,#6b4f3a)', 'linear-gradient(180deg,#f6a35b,#7d3f6b)'];
+  $('waStrip').innerHTML = `<div class="st"><img src="${PHOTO}"></div>` + others.map((g) => `<div class="st"><div style="background:${g}"></div></div>`).join('');
+  for (const id of ['prevImg', 'phImg']) $(id).src = PHOTO;
+  await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+  measure();
+  window.SOUNDS = soundCues();
+  window.render(0);
+  return true;
+});
+</script>
+</body>
+</html>

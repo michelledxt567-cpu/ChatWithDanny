@@ -1,5 +1,5 @@
 // Renders scene.html frame-by-frame to JPEGs with headless Chromium.
-// usage: node render.mjs <outDir> [fps] [--stills t1,t2,...] [--workers N]
+// usage: node render.mjs <outDir> [fps] [--scene file.html] [--stills t1,t2,...] [--workers N]
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
@@ -15,13 +15,14 @@ const args = process.argv.slice(2);
 const outDir = args[0] || 'frames';
 const fps = Number(args[1] || 60);
 const stillsArg = args.includes('--stills') ? args[args.indexOf('--stills') + 1] : null;
+const scene = args.includes('--scene') ? args[args.indexOf('--scene') + 1] : 'scene.html';
 const workers = args.includes('--workers') ? Number(args[args.indexOf('--workers') + 1]) : 6;
 fs.mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-crash-reporter', '--force-color-profile=srgb'] });
 async function newScene() {
   const page = await browser.newPage({ viewport: { width: 443, height: 960 }, deviceScaleFactor: 2 });
-  await page.goto('file://' + path.join(here, 'scene.html'));
+  await page.goto('file://' + path.join(here, scene));
   await page.evaluate(() => window.ready);
   return page;
 }
@@ -36,6 +37,7 @@ if (stillsArg) {
 } else {
   const probe = await newScene();
   const duration = await probe.evaluate(() => window.DURATION);
+  const sounds = await probe.evaluate(() => window.SOUNDS || []);
   await probe.close();
   const total = Math.ceil(duration * fps);
   console.log(`duration ${duration.toFixed(2)}s -> ${total} frames @ ${fps}fps`);
@@ -49,7 +51,7 @@ if (stillsArg) {
       if (++done % 300 === 0) console.log(`${done}/${total} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
     }
   }));
-  fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify({ fps, total, duration }));
+  fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify({ fps, total, duration, sounds }, null, 1));
   console.log('frames done', ((Date.now() - t0) / 1000).toFixed(1) + 's');
 }
 await browser.close();

@@ -2,14 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>WhatsApp — Danny (iPhone screen recording scene)</title>
+<title>Video 1: unlock phone, read chat with Danny, send message</title>
+<script src="phone.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
   /* Laid out in iPhone 15 points (393x852), zoomed so a 2x capture = 886x1920 (iOS screen-recording size). */
   #screen { position: absolute; left: 0; top: 0; width: 393px; height: 852px; zoom: 1.127226;
     overflow: hidden; font-family: "Noto Sans", sans-serif; color: #111b21; letter-spacing: -0.15px;
-    -webkit-font-smoothing: antialiased; background: #EFEAE2; }
+    -webkit-font-smoothing: antialiased; background: #000; }
+  #status { visibility: hidden; }
   #wall { position: absolute; inset: 0; background-color: #EFEAE2; background-repeat: repeat; }
   #chat { position: absolute; inset: 0; overflow: hidden; }
   #content { position: absolute; left: 0; right: 0; top: 0; }
@@ -93,16 +95,11 @@
 
   #home { position: absolute; left: 129.5px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: #000; z-index: 30; }
 
-  /* control center */
-  #cc { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
-  #ccbg { position: absolute; inset: 0; background: rgba(40,40,46,0.35); }
-  #ccin { position: absolute; inset: 0; transform-origin: 70% 0%; }
-  .tile { position: absolute; background: rgba(25,25,28,0.55); border-radius: 26px; }
-  .circ { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
 <div id="screen">
+<div id="launchclip"><div id="app">
   <div id="wall"></div>
   <div id="chat"><div id="content"></div></div>
   <div id="down"><svg width="16" height="10" viewBox="0 0 16 10"><path d="M2 2 L8 8 L14 2" fill="none" stroke="#54656F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -159,12 +156,7 @@
     <div id="popup"><div class="bulb"></div><div class="neck"></div><div class="stem"></div></div>
   </div>
 
-  <div id="home"></div>
-
-  <div id="cc">
-    <div id="ccbg"></div>
-    <div id="ccin"></div>
-  </div>
+</div></div>
 </div>
 
 <script>
@@ -403,55 +395,6 @@ function suggestions(text) {
   return { s: [`“${w}”`, c[0] || w, c[1] || ''], hl: -1 };
 }
 
-// ---------- control center ----------
-function buildCC() {
-  const icon = (d, col = '#fff') => `<svg width="24" height="24" viewBox="0 0 24 24">${d.replace(/STROKE/g, col)}</svg>`;
-  const P = {
-    plane: '<path d="M21 15.5 V13.8 L13.5 9 V4 a1.5 1.5 0 0 0 -3 0 V9 L3 13.8 V15.5 L10.5 13 V18 L8.5 19.5 V21 L12 20 L15.5 21 V19.5 L13.5 18 V13 Z" fill="STROKE"/>',
-    cell: '<rect x="3" y="14" width="3" height="6" rx="1" fill="STROKE"/><rect x="8" y="11" width="3" height="9" rx="1" fill="STROKE"/><rect x="13" y="8" width="3" height="12" rx="1" fill="STROKE"/><rect x="18" y="4" width="3" height="16" rx="1" fill="STROKE"/>',
-    wifi: '<path d="M12 6.5c3.1 0 5.9 1.2 8 3.2l1.5-1.5C19 5.8 15.7 4.4 12 4.4S5 5.8 2.5 8.2L4 9.7c2.1-2 4.9-3.2 8-3.2zm0 4.3c1.9 0 3.6.7 4.9 1.9l1.5-1.5C16.7 9.6 14.5 8.7 12 8.7s-4.7.9-6.4 2.5l1.5 1.5c1.3-1.2 3-1.9 4.9-1.9zm0 4.3c.9 0 1.6.3 2.2.8L12 18.2l-2.2-2.3c.6-.5 1.3-.8 2.2-.8z" fill="STROKE"/>',
-    bt: '<path d="M7 7.5 L16.5 16 L12 20 V4 L16.5 8 L7 16.5" fill="none" stroke="STROKE" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>',
-    lock: '<path d="M12 4 a8 8 0 1 0 8 8" fill="none" stroke="STROKE" stroke-width="1.8" stroke-linecap="round"/><path d="M18 9 L20.5 12 L23 9" fill="none" stroke="STROKE" stroke-width="1.8"/><rect x="8.5" y="11" width="7" height="6" rx="1.3" fill="STROKE"/><path d="M10 11 V9.5 a2 2 0 0 1 4 0 V11" fill="none" stroke="STROKE" stroke-width="1.5"/>',
-    moon: '<path d="M15.5 3.5 A8.5 8.5 0 1 0 20.5 15.5 A7 7 0 0 1 15.5 3.5 Z" fill="STROKE"/>',
-    torch: '<path d="M8 3 H16 V6 L14 10 V21 H10 V10 L8 6 Z" fill="none" stroke="STROKE" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.3" fill="STROKE"/>',
-    timer: '<circle cx="12" cy="13" r="8" fill="none" stroke="STROKE" stroke-width="1.7"/><path d="M12 13 V8 M10 2.5 H14" stroke="STROKE" stroke-width="1.7" stroke-linecap="round"/>',
-    calc: '<rect x="5" y="3" width="14" height="18" rx="2.5" fill="none" stroke="STROKE" stroke-width="1.6"/><rect x="8" y="6" width="8" height="3" rx="0.8" fill="STROKE"/><circle cx="9" cy="13" r="1.1" fill="STROKE"/><circle cx="12" cy="13" r="1.1" fill="STROKE"/><circle cx="15" cy="13" r="1.1" fill="STROKE"/><circle cx="9" cy="17" r="1.1" fill="STROKE"/><circle cx="12" cy="17" r="1.1" fill="STROKE"/><circle cx="15" cy="17" r="1.1" fill="STROKE"/>',
-    cam: '<path d="M4 8 h3 l1.6-2.4 h6.8 L17 8 h3 a1.5 1.5 0 0 1 1.5 1.5 v8 A1.5 1.5 0 0 1 20 19 H4 a1.5 1.5 0 0 1 -1.5 -1.5 v-8 A1.5 1.5 0 0 1 4 8 z" fill="none" stroke="STROKE" stroke-width="1.6"/><circle cx="12" cy="13" r="3.2" fill="none" stroke="STROKE" stroke-width="1.6"/>',
-    sun: '<circle cx="12" cy="12" r="4" fill="STROKE"/><path d="M12 2.5V5 M12 19v2.5 M2.5 12H5 M19 12h2.5 M5.3 5.3l1.8 1.8 M16.9 16.9l1.8 1.8 M5.3 18.7l1.8-1.8 M16.9 7.1l1.8-1.8" stroke="STROKE" stroke-width="1.8" stroke-linecap="round"/>',
-    vol: '<path d="M4 9.5 H7.5 L12 5.5 V18.5 L7.5 14.5 H4 Z" fill="STROKE"/><path d="M15 9 a4 4 0 0 1 0 6 M17.5 6.5 a7.5 7.5 0 0 1 0 11" fill="none" stroke="STROKE" stroke-width="1.7" stroke-linecap="round"/>',
-  };
-  const circ = (x, y, s, bg, ic) => `<div class="circ" style="left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${bg}">${ic}</div>`;
-  let h = '';
-  // connectivity block
-  h += `<div class="tile" style="left:24px;top:96px;width:166px;height:166px"></div>`;
-  h += circ(40, 112, 60, 'rgba(120,120,128,0.45)', icon(P.plane));
-  h += circ(114, 112, 60, '#30D158', icon(P.cell));
-  h += circ(40, 186, 60, '#0A84FF', icon(P.wifi));
-  h += circ(114, 186, 60, '#0A84FF', icon(P.bt));
-  // media block
-  h += `<div class="tile" style="left:203px;top:96px;width:166px;height:166px"></div>`;
-  h += `<div style="position:absolute;left:222px;top:118px;color:rgba(255,255,255,.9);font-size:15px;font-weight:600;font-family:'Noto Sans'">Not Playing</div>`;
-  h += `<div style="position:absolute;left:236px;top:210px;width:100px;display:flex;justify-content:space-between;opacity:.45">
-        <svg width="24" height="18" viewBox="0 0 24 18"><path d="M11 2 V16 L2 9Z M22 2 V16 L13 9Z" fill="#fff"/></svg>
-        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 1 V17 L16 9Z" fill="#fff"/></svg>
-        <svg width="24" height="18" viewBox="0 0 24 18"><path d="M2 2 V16 L11 9Z M13 2 V16 L22 9Z" fill="#fff"/></svg></div>`;
-  // small tiles
-  h += circ(24, 276, 76, 'rgba(25,25,28,0.55)', icon(P.lock));
-  h += circ(114, 276, 76, 'rgba(25,25,28,0.55)', icon(P.moon));
-  // sliders
-  h += `<div class="tile" style="left:203px;top:276px;width:76px;height:166px;border-radius:24px;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:62%;background:rgba(255,255,255,.92)"></div><div style="position:absolute;left:26px;bottom:16px">${icon(P.sun, '#8A8A8E')}</div></div>`;
-  h += `<div class="tile" style="left:293px;top:276px;width:76px;height:166px;border-radius:24px;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:45%;background:rgba(255,255,255,.92)"></div><div style="position:absolute;left:26px;bottom:16px">${icon(P.vol, '#8A8A8E')}</div></div>`;
-  h += `<div class="tile" style="left:24px;top:366px;width:166px;height:76px;border-radius:24px"></div>`;
-  h += `<div style="position:absolute;left:44px;top:392px;color:#fff;font-size:15px;font-weight:600;font-family:'Noto Sans'">Focus</div>`;
-  // bottom row
-  h += circ(24, 456, 76, 'rgba(25,25,28,0.55)', icon(P.torch));
-  h += circ(114, 456, 76, 'rgba(25,25,28,0.55)', icon(P.timer));
-  h += circ(203, 456, 76, 'rgba(25,25,28,0.55)', icon(P.calc));
-  h += `<div class="circ" id="recbtn" style="left:293px;top:456px;width:76px;height:76px;background:rgba(25,25,28,0.55)"><div style="width:30px;height:30px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center"><div id="recdot" style="width:18px;height:18px;border-radius:50%;background:#FF3B30"></div></div></div>`;
-  h += circ(24, 546, 76, 'rgba(25,25,28,0.55)', icon(P.cam));
-  $('ccin').innerHTML = h;
-}
-
 // ---------- layout measurement ----------
 const L = {};
 function measure() {
@@ -475,8 +418,8 @@ const TIMES = {
   minute: 20.4,           // status bar 6:40 -> 6:41
 };
 TIMES.end = T.send + 5.6;
-TIMES.ccIn = [TIMES.end - 0.95, TIMES.end - 0.5];
-window.DURATION = TIMES.end;
+TIMES.chatStart = 0.5;                 // old timeline: chat content shown from here...
+TIMES.chatEnd = TIMES.end - 0.95;      // ...until the point where Control Center used to be pulled down
 
 let SCROLL = null;
 function buildScroll() {
@@ -510,7 +453,7 @@ function scrollAt(t) {
 
 // ---------- render one frame ----------
 let lastLayer = '';
-window.render = function (t) {
+function chatRender(t) {
   // status bar clock
   $('clock').textContent = t < TIMES.minute ? '6:40' : '6:41';
 
@@ -619,25 +562,68 @@ window.render = function (t) {
     }
   }
 
-  // control center (recording starts with it being dismissed, ends with it being pulled down)
-  let c = 0;
-  if (t < TIMES.ccOut[1]) c = 1 - easeInOut(clamp((t - TIMES.ccOut[0]) / (TIMES.ccOut[1] - TIMES.ccOut[0]), 0, 1));
-  if (t > TIMES.ccIn[0]) c = easeOut3(clamp((t - TIMES.ccIn[0]) / (TIMES.ccIn[1] - TIMES.ccIn[0]), 0, 1));
-  const cc = $('cc');
-  if (c <= 0.001) { cc.style.display = 'none'; }
-  else {
-    cc.style.display = 'block';
-    cc.style.backdropFilter = `blur(${(26 * c).toFixed(1)}px) saturate(${100 + 40 * c}%)`;
-    $('ccbg').style.opacity = c;
-    const ci = $('ccin');
-    ci.style.opacity = clamp(c * 1.3 - 0.15, 0, 1);
-    ci.style.transform = `scale(${(0.86 + 0.14 * c).toFixed(4)})`;
-  }
-};
+}
 
 // ---------- init ----------
-buildWall(); buildChat(); buildKeyboard(); buildCC();
-window.ready = document.fonts.ready.then(() => { measure(); buildScroll(); window.render(0); return true; });
+buildWall(); buildChat(); buildKeyboard();
+
+// ---------- intro: wake phone -> Face ID -> swipe up -> home screen -> open WhatsApp ----------
+PHONE.build($('screen'), {
+  date: 'Saturday, November 14', lockTime: '6:40', dayName: 'Saturday', dayNum: 14,
+  weather: { city: 'Portland', temp: 49, cond: 'Mostly Cloudy', hi: 56, lo: 42 },
+  badges: { instagram: 3, snapchat: 2, discord: 5, gmail: 27 },
+  notifs: [
+    { app: 'instagram', title: 'Instagram', body: 'emma.rose liked your story.', time: '14m ago' },
+    { app: 'snapchat', title: 'Snapchat', body: 'from jake_m', time: '41m ago' },
+  ],
+});
+const I = { wake: 0.30, faceId: 0.95, swipe: [1.75, 2.25], press: 3.30, launch: [3.42, 3.87] };
+I.end = 3.95;                                    // chat (old t = 0.5) starts here
+const toChat = (t) => Math.max(TIMES.chatStart, t - I.end + TIMES.chatStart);
+window.DURATION = I.end + (TIMES.chatEnd - TIMES.chatStart);
+const BATT = 8.6;
+
+window.render = function (t) {
+  const ct = toChat(t);
+  chatRender(ct);
+  const clock = ct < TIMES.minute ? '6:40' : '6:41';
+  PHONE.blackout(t < I.wake ? 1 : 1 - clamp((t - I.wake) / 0.16, 0, 1));
+  const sw = easeOut3(clamp((t - I.swipe[0]) / (I.swipe[1] - I.swipe[0]), 0, 1));
+  const lp = t < I.launch[0] ? 0 : easeOut4(clamp((t - I.launch[0]) / (I.launch[1] - I.launch[0]), 0, 1));
+  PHONE.lock(sw < 1 ? { show: true, y: -852 * sw, time: '6:40', pad: clamp((t - I.faceId) / 0.3, 0, 1),
+    reveal: clamp((t - I.faceId - 0.05) / 0.2, 0, 1), hint: clamp((t - 1.1) / 0.2, 0, 1) * (1 - sw), fade: clamp(sw * 3, 0, 1) } : null);
+  PHONE.home(sw > 0 && lp < 1 ? { show: true, scale: (1.12 - 0.12 * sw) * (1 + 0.06 * lp), opacity: sw, dim: 0.25 * lp,
+    pressed: t >= I.press && t < I.launch[0] + 0.05 ? 'whatsapp' : null, hidden: lp > 0 ? 'whatsapp' : null } : null);
+  PHONE.launch(t < I.launch[0] ? 0 : (lp >= 1 ? null : lp));
+  const inApp = lp > 0.55;
+  PHONE.status({ show: t >= I.wake, color: inApp ? '#000' : '#fff', time: clock, carrier: sw < 0.5 ? 'T-Mobile' : null, bars: 4, net: 'wifi', battery: BATT });
+  PHONE.homeInd({ show: t >= I.wake, color: inApp ? '#000' : '#fff' });
+};
+
+// ---------- sound cue sheet (consumed by audio.mjs) ----------
+function soundCues() {
+  const c = [];
+  const at = (oldT) => oldT - TIMES.chatStart + I.end;
+  c.push({ t: I.wake - 0.04, k: 'button' });
+  c.push({ t: I.swipe[0] - 0.05, k: 'swipe' });
+  c.push({ t: I.press, k: 'tap' });
+  for (const s of SCROLL.slice(1)) if (s.ease === easeOut4) c.push({ t: at(s.t - 0.95) - 0.05, k: 'swipe', g: 0.7 });
+  c.push({ t: at(SCROLL[5].t) - 0.05, k: 'swipe', g: 0.8 });
+  c.push({ t: at(TIMES.kb[0]) - 0.03, k: 'tap' });
+  for (const a of SCRIPT) {
+    if (a.k === 'SEND') { c.push({ t: at(a.t), k: 'tap' }); c.push({ t: at(a.t + 0.55), k: 'waSent' }); continue; }
+    c.push({ t: at(a.t), k: a.k === 'BS' ? 'keyDel' : (['SP', '123', 'ABC', 'RET', 'SHIFT'].includes(a.k) ? 'keyMod' : 'key') });
+  }
+  // breathing accents: a quiet sigh after seeing the grey ticks, an inhale before sending, an exhale after
+  c.push({ t: at(13.2), k: 'sigh', g: 0.8 });
+  c.push({ t: at(T.send - 1.1), k: 'inhale', g: 0.7 });
+  c.push({ t: at(T.send + 1.4), k: 'exhale', g: 0.8 });
+  return c.filter((x) => x.t < window.DURATION).sort((a, b) => a.t - b.t);
+}
+
+window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px LockClock')]).then(() => {
+  measure(); buildScroll(); window.SOUNDS = soundCues(); window.render(0); return true;
+});
 </script>
 </body>
 </html>
