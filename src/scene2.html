@@ -5,6 +5,7 @@
 <title>Video 2: 8:23 PM at Danny's old house, flash photo, messages fail</title>
 <script src="phone.js"></script>
 <script src="house3d.js"></script>
+<script src="photos.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
@@ -472,7 +473,8 @@ function kbRender(t, kbP, st) {
     // pressed key + popup
     const pop = $('popup');
     pop.style.display = 'none';
-    const act = SCRIPT.find((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
+    // newest key press wins, so fast consecutive taps each get their own popup
+    const act = SCRIPT.findLast((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
     if (act) {
       // the key that was pressed belongs to the layer active *before* the action
       const before = textState(act.t - 0.0001);
@@ -528,12 +530,13 @@ const T = {};
   const r = rng(77);
   let t = 22.85;
   const tap = (k, dt) => { SCRIPT.push({ t, k }); t += dt; };
-  for (const ch of 'Im') tap(ch, 0.19 + r() * 0.1);
-  tap('SP', 0.24);
-  for (const ch of 'here') tap(ch, 0.17 + r() * 0.1);
-  t += 0.2;
-  tap('123', 0.38); tap('.', 0.2);
-  t += 0.75;
+  // fast two-thumb typing (~8 keys/s); cold hands, so only a touch slower than video 1
+  for (const ch of 'Im') tap(ch, 0.1 + r() * 0.06);
+  tap('SP', 0.13);
+  for (const ch of 'here') tap(ch, 0.09 + r() * 0.06);
+  t += 0.12;
+  tap('123', 0.22); tap('.', 0.15);
+  t += 0.5;
   T.send = t; SCRIPT.push({ t, k: 'SEND' });
 })();
 V.txSent = T.send;
@@ -549,7 +552,7 @@ const NEXT = { 'I’m': ['here', 'so', 'outside'] };
 // ---------- photo of the house (rendered once, same for every worker) ----------
 const BASE = { cam: [0.35, 1.55, 7.6], target: [0.2, 2.75, 0], fov: 65 };
 const BASE_WA = { cam: [0.4, 1.45, 7.9], target: [0.25, 2.6, 0], fov: 82 };
-let drawVF = null, drawWA = null, PHOTO = '';
+let drawVF = null, drawWA = null, PHOTO = '', ROLL = [];
 function makePhoto() {
   const c = document.createElement('canvas'); c.width = 886; c.height = 1181;
   const draw = HOUSE3D.create(c);
@@ -688,7 +691,7 @@ window.render = function (t) {
       setOnce(th, 'p', `<img src="${PHOTO}">`);
       const a = ease(t, SHOT.thumb, SHOT.thumb + 0.3);
       th.firstChild.style.transform = `scale(${0.4 + 0.6 * a})`; th.firstChild.style.opacity = a;
-    } else setOnce(th, 'old', '<div style="width:100%;height:100%;background:linear-gradient(135deg,#d9c38a,#8a5a36 60%,#3b2a22)"></div>');
+    } else setOnce(th, 'old', `<img src="${ROLL[0]}">`);
   }
 
   // ===== system: lock screen, home screen, app launch =====
@@ -765,9 +768,10 @@ window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px
   PHOTO = makePhoto();
   drawVF = HOUSE3D.create($('vfCanvas'));
   drawWA = HOUSE3D.create($('waCanvas'));
-  const others = ['linear-gradient(160deg,#1b1b2f,#e94560 55%,#f5d76e)', 'linear-gradient(135deg,#d9c38a,#8a5a36 60%,#3b2a22)',
-    'linear-gradient(200deg,#89a7c2,#3e5a75 50%,#1d2a36)', 'linear-gradient(120deg,#f0e6d2,#c7a27c 50%,#6b4f3a)', 'linear-gradient(180deg,#f6a35b,#7d3f6b)'];
-  $('waStrip').innerHTML = `<div class="st"><img src="${PHOTO}"></div>` + others.map((g) => `<div class="st"><div style="background:${g}"></div></div>`).join('');
+  // camera roll before tonight, newest first: payment screenshot + dinner (Thursday), the dog, the beach, a sunset
+  const P = PHOTOS.make();
+  ROLL = [P.payment, P.kebab, P.dog, P.beach, P.sunset];
+  $('waStrip').innerHTML = `<div class="st"><img src="${PHOTO}"></div>` + ROLL.map((s) => `<div class="st"><img src="${s}"></div>`).join('');
   for (const id of ['prevImg', 'phImg']) $(id).src = PHOTO;
   await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
   measure();

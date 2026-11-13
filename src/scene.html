@@ -333,25 +333,26 @@ const T = {};
   const r = rng(42);
   let t = 17.9;
   const tap = (k, dt) => { SCRIPT.push({ t, k }); t += dt; };
-  const type = (s, base = 0.155, jit = 0.11) => {
+  // fast two-thumb typing (~8 keys/s, ~70 wpm), a little slower around word gaps
+  const type = (s, base = 0.085, jit = 0.07) => {
     for (const ch of s) {
-      if (ch === ' ') tap('SP', base + 0.05 + r() * jit);
+      if (ch === ' ') tap('SP', base + 0.03 + r() * jit);
       else tap(ch, base + r() * jit);
     }
   };
   // starts to type his name... stops, deletes it
-  type('Dan', 0.2, 0.1);
-  t += 1.25;
-  tap('BS', 0.16); tap('BS', 0.15); tap('BS', 0.15);
-  t += 1.15;
+  type('Dan', 0.11, 0.06);
+  t += 0.95;
+  tap('BS', 0.1); tap('BS', 0.09); tap('BS', 0.09);
+  t += 0.85;
   // the real message
   type('Im coming over ');
-  t += 0.55;
+  t += 0.35;
   type('to chekc on you');
-  t += 0.3;
-  tap('123', 0.42);
-  tap('.', 0.2);
-  t += 1.15;
+  t += 0.2;
+  tap('123', 0.24);
+  tap('.', 0.15);
+  t += 0.75;
   T.send = t;
   SCRIPT.push({ t, k: 'SEND' });
 })();
@@ -529,7 +530,8 @@ function chatRender(t) {
     // pressed key + popup
     const pop = $('popup');
     pop.style.display = 'none';
-    const act = SCRIPT.find((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
+    // newest key press wins, so fast consecutive taps each get their own popup
+    const act = SCRIPT.findLast((a) => t >= a.t && t < a.t + 0.1 && a.k !== 'SEND');
     if (act) {
       // the key that was pressed belongs to the layer active *before* the action
       const before = textState(act.t - 0.0001);

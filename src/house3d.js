@@ -22,25 +22,46 @@
     return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
   float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
 
-  // weathered, unpainted wood. a.x runs along the grain, a.y across it.
+  // fade out detail finer than ~2 px so it never shimmers while the camera moves
+  float aaFade(float freq, float w) { return 1.0 - smoothstep(0.25, 0.6, freq * w); }
+
+  // decades-old, unpainted, grey-brown weathered wood. a.x runs along the grain, a.y across it.
   vec3 oldWood(vec2 a, vec3 p, float tone) {
-    float grain = fbm(vec2(a.x * 0.5, a.y * 34.0));
-    float fine = vnoise(vec2(a.x * 1.5, a.y * 160.0));
-    vec3 c = mix(vec3(0.105, 0.06, 0.03), vec3(0.29, 0.17, 0.085), grain) * tone;
-    // darker growth-ring streaks
-    float rings = smoothstep(0.35, 0.5, abs(fract(grain * 7.0 + a.y * 3.0) - 0.5));
-    c *= 0.72 + 0.28 * rings;
-    c *= 0.78 + 0.22 * fine;
-    // sun-bleached grey patches
-    float bleach = smoothstep(0.55, 0.8, fbm(p.xy * 0.8 + p.z * 0.6 + 3.0));
-    c = mix(c, vec3(0.20, 0.18, 0.15) * tone, bleach * 0.35);
-    // dark water stains running down, rot near the bottom
-    float stain = smoothstep(0.45, 0.8, fbm(vec2((p.x + p.z) * 1.6, p.y * 0.3) + 9.0));
-    float rot = smoothstep(1.3, 0.2, p.y) * smoothstep(0.4, 0.7, fbm(p.xz * 2.0 + p.y));
-    c *= 1.0 - 0.5 * stain - 0.35 * rot;
-    // small cracks / knots
-    c *= 1.0 - 0.5 * smoothstep(0.93, 0.98, vnoise(vec2(a.x * 3.0, a.y * 60.0)));
+    float w = max(fwidth(a.y), 1e-4);
+    float grain = fbm(vec2(a.x * 0.5, a.y * 30.0));
+    vec3 c = mix(vec3(0.052, 0.036, 0.024), vec3(0.205, 0.150, 0.102), grain) * tone;
+    // long fibrous streaks along the grain (weathered, raised grain)
+    float st1 = vnoise(vec2(a.x * 0.7, a.y * 55.0)), st2 = vnoise(vec2(a.x * 1.3, a.y * 110.0) + 7.0);
+    c *= 1.0 - 0.40 * (1.0 - st1) * aaFade(55.0, w) - 0.22 * (1.0 - st2) * aaFade(110.0, w);
+    c *= 1.0 + 0.18 * smoothstep(0.75, 0.95, st1) * aaFade(55.0, w);
+    // silvery grey patina where the wood is most exposed
+    float pat = smoothstep(0.42, 0.78, fbm(vec2(a.x * 0.3, a.y * 5.0) + p.z * 0.4 + 5.0));
+    c = mix(c, vec3(0.160, 0.140, 0.118) * tone, pat * 0.35);
+    // lengthwise splits: thin dark broken lines
+    float sy = a.y * 7.0 + 0.6 * vnoise(vec2(a.x * 0.6, a.y * 2.0));
+    float split = (1.0 - smoothstep(0.0, max(0.03, fwidth(sy) * 1.2), abs(fract(sy) - 0.5)))
+      * step(0.66, vnoise(vec2(a.x * 1.1, floor(sy) * 3.7)));
+    c *= 1.0 - 0.55 * split * aaFade(14.0, w);
+    // dark specks: nail holes, dirt, insect holes
+    vec2 sq = vec2(a.x * 9.0, a.y * 16.0); vec2 sc = floor(sq);
+    vec2 so = vec2(h21(sc + 1.7), h21(sc + 4.3)) * 0.6 + 0.2;
+    float sp = step(0.93, h21(sc)) * smoothstep(0.16, 0.06, length((sq - sc - so) * vec2(1.0, 0.55)));
+    c *= 1.0 - 0.55 * sp * aaFade(16.0, w);
+    // knots
+    vec2 kq = vec2(a.x * 1.4, a.y * 6.0); vec2 kc = floor(kq) + 0.5;
+    float kd = length((kq - kc) * vec2(1.0, 0.7)) * 5.0;
+    c *= 1.0 - 0.45 * step(0.86, h21(kc + 3.1)) * smoothstep(1.0, 0.25, kd);
+    // grime running down from above, darker and damp near the ground
+    float stain = smoothstep(0.58, 0.88, fbm(vec2((p.x + p.z) * 2.4, p.y * 0.22) + 9.0));
+    float low = smoothstep(1.1, 0.0, p.y) * (0.5 + 0.5 * fbm(p.xz * 3.0 + p.y * 2.0));
+    c *= 1.0 - 0.22 * stain - 0.38 * low;
     return c;
+  }
+  // worn, slightly lighter arrises on boxy trim (uv is 0..1 across each face)
+  float edgeWear(vec2 uv) {
+    vec2 px = min(uv, 1.0 - uv) / max(fwidth(uv), vec2(1e-5));
+    float e = min(px.x, px.y);
+    return 1.0 + 0.32 * (1.0 - smoothstep(0.5, 2.5, e)) - 0.10 * smoothstep(2.5, 6.0, e) * (1.0 - smoothstep(6.0, 14.0, e));
   }
 
   // returns albedo, writes glass flag & roughness
@@ -55,20 +76,22 @@
       float bl = 2.2 + 1.4 * h21(vec2(row, 3.0));
       float seg = floor(along / bl + h21(vec2(row, 7.0)));
       float joint = abs(fract(along / bl + h21(vec2(row, 7.0))) - 0.5) * bl;
-      vec3 c = oldWood(vec2(along + seg * 5.3, p.y + seg * 0.37), p, 0.82 + 0.3 * h21(vec2(row, seg)));
-      c *= joint > bl * 0.5 - 0.012 ? 0.45 : 1.0;
+      vec3 c = oldWood(vec2(along + seg * 5.3, p.y + seg * 0.37), p, 0.80 + 0.32 * h21(vec2(row, seg)));
+      c *= joint > bl * 0.5 - 0.012 ? 0.4 : 1.0;
+      // the odd warped board sits darker in its own shadow
+      c *= 1.0 - 0.25 * step(0.9, h21(vec2(row, seg + 11.0))) * (1.0 - f);
       return c * edge;
     }
     if (m == 1) { // trim boards, beams, deck sides, steps: horizontal grain
       float across = abs(vNor.y) > 0.5 ? p.z : p.y;
-      return oldWood(vec2(p.x + p.z, across), p, 1.05);
+      return oldWood(vec2(p.x + p.z, across), p, 1.05) * edgeWear(uv);
     }
     if (m == 11) { // columns, corner boards: vertical grain
-      return oldWood(vec2(p.y, p.x + p.z), p, 1.05);
+      return oldWood(vec2(p.y, p.x + p.z), p, 1.05) * edgeWear(uv);
     }
     if (m == 2) { // arched door with glass upper half; uv 0..1
       vec2 q = uv;
-      vec3 wood = oldWood(vec2(p.y, q.x * 1.5), p, 0.85);
+      vec3 wood = oldWood(vec2(p.y, q.x * 1.5), p, 0.72);
       // lower recessed panel
       if (q.y > 0.07 && q.y < 0.33 && q.x > 0.14 && q.x < 0.86) {
         float b = min(min(q.y - 0.07, 0.33 - q.y) * 3.0, min(q.x - 0.14, 0.86 - q.x));
@@ -121,9 +144,9 @@
     if (m == 6) { // concrete path slabs
       vec2 s = p.xz / vec2(1.4, 1.1);
       float j = min(abs(fract(s.x) - 0.5), abs(fract(s.y) - 0.5));
-      vec3 c = mix(vec3(0.30, 0.30, 0.29), vec3(0.42, 0.41, 0.39), fbm(p.xz * 2.0));
+      vec3 c = mix(vec3(0.15, 0.15, 0.148), vec3(0.23, 0.225, 0.215), fbm(p.xz * 2.0));
       c *= 0.85 + 0.15 * h21(floor(s));
-      c = mix(c, vec3(0.14, 0.14, 0.12), step(0.62, fbm(p.xz * 3.0 + 11.0)) * 0.5); // moss / stains
+      c = mix(c, vec3(0.075, 0.075, 0.068), smoothstep(0.55, 0.68, fbm(p.xz * 3.0 + 11.0)) * 0.6); // damp patches / stains
       return c * (j > 0.485 ? 0.5 : 1.0);
     }
     if (m == 7) { // shingles
@@ -165,7 +188,8 @@
     if (uFlash > 0.0) {
       vec3 Fd = uFlashPos - vPos; float f2 = dot(Fd, Fd); vec3 Fl = Fd / sqrt(f2);
       float cone = smoothstep(0.65, 0.97, dot(-Fl, normalize(vec3(0.0, -0.05, -1.0))));
-      vec3 fcol = vec3(1.0, 0.97, 0.92) * uFlash * 38.0 / f2 * (0.25 + 0.75 * cone);
+      // gentler than 1/r^2: the phone's auto-exposure keeps near surfaces from blowing out
+      vec3 fcol = vec3(1.0, 0.97, 0.92) * uFlash * 9.8 / pow(f2, 0.7) * (0.25 + 0.75 * cone);
       col += alb * fcol * max(dot(N, Fl), 0.0);
       vec3 H = normalize(Fl + V);
       col += fcol * spec * (glass > 0.5 ? 0.9 : 0.08) * pow(max(dot(N, H), 0.0), glass > 0.5 ? 220.0 : 18.0);
