@@ -342,9 +342,10 @@ const T = {};
   };
   // starts to type his name... stops, deletes it
   type('Dan', 0.11, 0.06);
-  t += 0.95;
-  tap('BS', 0.1); tap('BS', 0.09); tap('BS', 0.09);
-  t += 0.85;
+  // hesitation kept at the original length: long pause, slow deletes, another pause
+  t += 1.25;
+  tap('BS', 0.16); tap('BS', 0.15); tap('BS', 0.15);
+  t += 1.15;
   // the real message
   type('Im coming over ');
   t += 0.35;

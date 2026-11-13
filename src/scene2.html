@@ -122,7 +122,7 @@
   #modes span { position: absolute; top: 0; transform: translateX(-50%); color: rgba(255,255,255,.95); }
   #shutter { position: absolute; left: 158px; top: 700px; width: 77px; height: 77px; border-radius: 50%; border: 5px solid #fff; }
   #shutterIn { position: absolute; left: 4px; top: 4px; width: 59px; height: 59px; border-radius: 50%; background: #fff; }
-  #thumb { position: absolute; left: 34px; top: 715px; width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #1c1c1e; }
+  #thumb { position: absolute; left: 34px; top: 715px; width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #3a3a3c; }
   #thumb img { width: 100%; height: 100%; object-fit: cover; }
   #flip { position: absolute; left: 310px; top: 714px; width: 50px; height: 50px; border-radius: 50%; background: rgba(60,60,64,.7); }
   #shutFx { position: absolute; left: 0; top: 104px; width: 393px; height: 524px; background: #000; opacity: 0; }
@@ -691,7 +691,7 @@ window.render = function (t) {
       setOnce(th, 'p', `<img src="${PHOTO}">`);
       const a = ease(t, SHOT.thumb, SHOT.thumb + 0.3);
       th.firstChild.style.transform = `scale(${0.4 + 0.6 * a})`; th.firstChild.style.opacity = a;
-    } else setOnce(th, 'old', `<img src="${ROLL[0]}">`);
+    } else setOnce(th, 'empty', '');   // lock-screen camera can't show the library: empty grey slot
   }
 
   // ===== system: lock screen, home screen, app launch =====

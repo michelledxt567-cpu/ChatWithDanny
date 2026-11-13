@@ -6,7 +6,7 @@ Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 
 | File | Length | What it shows |
 |---|---|---|
-| [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.0 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
+| [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.8 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
 | [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 34.9 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
 
 ## Video 1: unlock and chat
@@ -18,8 +18,8 @@ Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 | 3.3–3.9 s | A tap on WhatsApp opens the app straight into the Danny chat. |
 | 3.95–15 s | The chat starts at **Monday**, and the user reads through it. Monday's messages have blue ✓✓. |
 | 15–19.5 s | A swipe down to the end. **Wednesday** and **Thursday** messages have grey ✓✓ (delivered, not read). The header says `last seen Monday at 11:52 AM` the whole time. |
-| 19.5–29.3 s | The user starts typing "Dan" and deletes it. Then they type `Im coming over to chekc on you` at a fast two-thumb pace (about 8 keys/s, ~70 wpm), and autocorrect fixes "I’m" and "check". The clock changes from 6:40 to 6:41. |
-| 29.3–34.0 s | The message is sent under **Today** with a single grey ✓ and stays unanswered. |
+| 19.5–30.1 s | The user starts typing "Dan", hesitates, and slowly deletes it (same pause as the first version). Then they type `Im coming over to chekc on you` at a fast two-thumb pace (about 8 keys/s, ~70 wpm), and autocorrect fixes "I’m" and "check". The clock changes from 6:40 to 6:41. |
+| 30.1–34.8 s | The message is sent under **Today** with a single grey ✓ and stays unanswered. |
 
 The chat content is the same as in the first version. The typing was sped up to a typical young person's pace, and the intro no longer has the Control Center open/close.
 
@@ -32,7 +32,7 @@ The chat content is the same as in the first version. The typing was sped up to 
 | 4.9 s | The signal drops to 1 bar. |
 | 5.5 s | Flash is turned on ("FLASH ON"). |
 | 6.6 s | The signal goes to **no bars, 3G disappears**. |
-| 7.7–8.1 s | The shutter is pressed. A pre-flash fires, then the main flash lights up the porch, and the thumbnail updates. |
+| 7.7–8.1 s | The shutter is pressed. A pre-flash fires, then the main flash lights up the porch. The thumbnail slot, an empty grey square until now (the lock-screen camera can't show the photo library), shows the new photo. |
 | 10.3–12.4 s | Swipe up back to the lock screen (now showing "No Service"). Face ID unlocks the phone, then swipe up to the home screen. The clock changes to 8:24. |
 | 13.6 s | WhatsApp opens on the Danny chat, which ends with 6:41 PM "I’m coming over to check on you." (single ✓). |
 | 16–20.1 s | The in-chat camera opens. The user picks the new photo from the strip, next to older camera-roll items (a payment screenshot, a döner kebab plate, a white samoyed, a beach, a sunset); the preview shows Danny as recipient, and they tap send. |
