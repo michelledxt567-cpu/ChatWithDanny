@@ -7,7 +7,7 @@ Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 | File | Length | What it shows |
 |---|---|---|
 | [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.8 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
-| [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 34.9 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
+| [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 30.3 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
 
 ## Video 1: unlock and chat
 
@@ -29,16 +29,16 @@ The chat content is the same as in the first version. The typing was sped up to 
 |---|---|
 | 0.45 s | The lock screen wakes at **8:23 PM**: T-Mobile, **3G**, 2 bars, low battery (red). |
 | 2.35–3.0 s | Swipe left into Camera. The night-mode viewfinder shows the weathered, grey-brown wooden porch (split boards, grime and damp near the ground) with arched double doors. |
-| 4.9 s | The signal drops to 1 bar. |
-| 5.5 s | Flash is turned on ("FLASH ON"). |
-| 6.6 s | The signal goes to **no bars, 3G disappears**. |
-| 7.7–8.1 s | The shutter is pressed. A pre-flash fires, then the main flash lights up the porch. The thumbnail slot, an empty grey square until now (the lock-screen camera can't show the photo library), shows the new photo. |
-| 10.3–12.4 s | Swipe up back to the lock screen (now showing "No Service"). Face ID unlocks the phone, then swipe up to the home screen. The clock changes to 8:24. |
-| 13.6 s | WhatsApp opens on the Danny chat, which ends with 6:41 PM "I’m coming over to check on you." (single ✓). |
-| 16–20.1 s | The in-chat camera opens. The user picks the new photo from the strip, next to older camera-roll items (a payment screenshot, a döner kebab plate, a white samoyed, a beach, a sunset); the preview shows Danny as recipient, and they tap send. |
-| 21.9–24.7 s | The user types `Im here.` (autocorrect gives "I’m here.") and sends it. |
-| ~28.3 s | The photo upload fails: red **!** and **Retry**. |
-| ~30.8 s | "I’m here." fails with a red **!**. Danny's status stays `last seen Monday at 11:52 AM`. |
+| 3.8 s | The signal drops to 1 bar. |
+| 4.3 s | Flash is turned on ("FLASH ON"). |
+| 4.9 s | The signal goes to **no bars, 3G disappears**. |
+| 5.6–6.0 s | The shutter is pressed. A pre-flash fires, then the main flash lights up the porch. The thumbnail slot, an empty grey square until now (the lock-screen camera can't show the photo library), shows the new photo. |
+| 7.2–9.3 s | Swipe up back to the lock screen (now showing "No Service"). Face ID unlocks the phone, then swipe up to the home screen. The clock changes to 8:24. |
+| 10.5 s | WhatsApp opens on the Danny chat, which ends with 6:41 PM "I’m coming over to check on you." (single ✓). |
+| 12.9–15.9 s | The in-chat camera opens. The user picks the new photo from the strip, next to older camera-roll items (a payment screenshot, a döner kebab plate, a white samoyed, a beach, a sunset); the preview shows Danny as recipient, and they tap send. The preview screen is up for about 1.5 s. |
+| 17.4–20.1 s | The user types `Im here.` (autocorrect gives "I’m here.") and sends it. |
+| ~23.7 s | The photo upload fails: red **!** and **Retry**. |
+| ~26.2 s | "I’m here." fails with a red **!**. Danny's status stays `last seen Monday at 11:52 AM`. |
 
 ## Audio
 
@@ -62,7 +62,7 @@ node render.mjs ../work/frames2 60 --scene scene2.html --workers 7
 node audio.mjs ../work/frames2/meta.json ../work/audio2.wav outdoor
 node encode.mjs ../work/frames2 ../output/video2_old_house_no_service.mp4 ../work/audio2.wav
 # optional playback check
-node verify.mjs ../output/video2_old_house_no_service.mp4 ../work/check 1,8.13,34
+node verify.mjs ../output/video2_old_house_no_service.mp4 ../work/check 1,5.95,30
 ```
 
 - `src/phone.js` has the shared iOS parts: status bar, lock screen, home screen, and app launch.

@@ -513,13 +513,14 @@ function kbRender(t, kbP, st) {
 // 8:23 PM outside Danny's dad's old house: wake phone -> swipe to Camera -> flash on -> photo ->
 // close camera -> unlock -> WhatsApp -> send photo + "I'm here." -> no service, both fail.
 
+// brisk handling: ~4.4 s in the lock-screen camera, ~1.5 s on the send-photo preview
 const V = {
   wake: 0.45, camSwipe: [2.35, 2.8], camLive: 3.0,
-  barsDip: 4.9, flashTap: 5.5, sigDrop: 6.6, shot: 7.7,
-  closeCam: [10.3, 10.75], faceId: 10.95, unlock: [11.85, 12.35],
-  minute: 12.9, waTap: 13.55, launch: [13.67, 14.12],
-  camIcon: 16.0, waCamIn: [16.05, 16.42], pick: 18.1, prevIn: [18.15, 18.45],
-  prevSend: 20.1, prevOut: [20.15, 20.45], field: 21.9, kb: [21.95, 22.35],
+  barsDip: 3.8, flashTap: 4.3, sigDrop: 4.9, shot: 5.6,
+  closeCam: [7.2, 7.65], faceId: 7.85, unlock: [8.75, 9.25],
+  minute: 9.8, waTap: 10.45, launch: [10.57, 11.02],
+  camIcon: 12.9, waCamIn: [12.95, 13.32], pick: 14.35, prevIn: [14.4, 14.7],
+  prevSend: 15.55, prevOut: [15.6, 15.9], field: 17.35, kb: [17.4, 17.8],
 };
 const SHOT = { pre: V.shot + 0.1, main: V.shot + 0.42, blink: V.shot + 0.47, thumb: V.shot + 0.62 };
 
@@ -528,7 +529,7 @@ const SCRIPT = [];
 const T = {};
 (function () {
   const r = rng(77);
-  let t = 22.85;
+  let t = V.field + 0.95;
   const tap = (k, dt) => { SCRIPT.push({ t, k }); t += dt; };
   // fast two-thumb typing (~8 keys/s); cold hands, so only a touch slower than video 1
   for (const ch of 'Im') tap(ch, 0.1 + r() * 0.06);
@@ -683,7 +684,7 @@ window.render = function (t) {
     setOnce($('flashBtn'), flashOn ? 'on' : 'off', flashOn ? FLASH_ON : FLASH_OFF);
     $('flashBtn').style.transform = `scale(${t >= V.flashTap && t < V.flashTap + 0.15 ? 0.85 : 1})`;
     setOnce($('nightBtn'), flashOn ? 'x' : 'n', flashOn ? '' : NIGHT);
-    $('flashPill').style.opacity = t < V.flashTap ? 0 : clamp(Math.min((t - V.flashTap) / 0.15, (V.flashTap + 1.5 - t) / 0.3), 0, 1);
+    $('flashPill').style.opacity = t < V.flashTap ? 0 : clamp(Math.min((t - V.flashTap) / 0.15, (V.flashTap + 1.1 - t) / 0.3), 0, 1);
     const pressed = t >= V.shot && t < V.shot + 0.14;
     $('shutterIn').style.transform = `scale(${pressed ? 0.86 : 1})`;
     const th = $('thumb');
@@ -725,22 +726,22 @@ function soundCues() {
   c.push({ t: V.wake - 0.04, k: 'button' });
   c.push({ t: 1.2, k: 'exhale', g: 0.9 });
   c.push({ t: V.camSwipe[0] - 0.05, k: 'swipe' });
-  c.push({ t: 3.7, k: 'shuffle', g: 0.9, d: 0.55 });
-  c.push({ t: 4.4, k: 'shaky', g: 0.85 });
+  c.push({ t: 3.3, k: 'shuffle', g: 0.9, d: 0.55 });
+  c.push({ t: 3.55, k: 'shaky', g: 0.85 });
   c.push({ t: V.flashTap, k: 'tap' });
   c.push({ t: V.shot - 1.05, k: 'inhale', g: 0.9 });
   c.push({ t: V.shot, k: 'tap' });
   c.push({ t: SHOT.main - 0.02, k: 'shutter' });
   c.push({ t: SHOT.main + 0.8, k: 'exhale', g: 0.9 });
-  c.push({ t: 9.3, k: 'creak', g: 0.8, d: 1.0 });
+  c.push({ t: 6.95, k: 'creak', g: 0.8, d: 1.0 });
   c.push({ t: V.closeCam[0] - 0.05, k: 'swipe', g: 0.9 });
   c.push({ t: V.unlock[0] - 0.05, k: 'swipe' });
-  c.push({ t: 12.8, k: 'shaky', g: 0.8 });
+  c.push({ t: 9.7, k: 'shaky', g: 0.8 });
   c.push({ t: V.waTap, k: 'tap' });
-  c.push({ t: 15.0, k: 'bark', g: 0.9 });
+  c.push({ t: 11.9, k: 'bark', g: 0.9 });
   c.push({ t: V.camIcon, k: 'tap' });
   c.push({ t: V.pick, k: 'tap' });
-  c.push({ t: 19.0, k: 'shuffle', g: 0.7, d: 0.5 });
+  c.push({ t: 14.95, k: 'shuffle', g: 0.7, d: 0.5 });
   c.push({ t: V.prevSend, k: 'tap' });
   c.push({ t: V.field, k: 'tap' });
   for (const a of SCRIPT) {
