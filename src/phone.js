@@ -27,7 +27,8 @@
         backdrop-filter: blur(24px) saturate(160%); overflow:hidden; }
   .nt .ic { position:absolute; left:12px; top:14px; width:40px; height:40px; border-radius:10px; overflow:hidden; }
   .nt .ti { position:absolute; left:62px; top:13px; font-size:15px; font-weight:600; color:#111; letter-spacing:-0.2px; }
-  .nt .bd { position:absolute; left:62px; top:34px; right:14px; font-size:15px; color:#111; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nt .bd { position:absolute; left:62px; top:34px; right:14px; height:21px; font-size:15px; color:#111; letter-spacing:-0.2px; }
+  .nt .bd span { position:absolute; left:0; top:0; right:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .nt .tm { position:absolute; right:14px; top:14px; font-size:13px; color:rgba(30,30,40,.6); }
   .lkBtn { position:absolute; top:744px; width:50px; height:50px; border-radius:50%; background:rgba(20,20,30,.38);
            backdrop-filter: blur(20px); display:flex; align-items:center; justify-content:center; }
@@ -124,7 +125,7 @@
 
     // lock screen
     const notifHTML = (cfg.notifs || []).map((n, i) => `<div class="nt"><div class="ic">${ICONS[n.app]()}</div><div class="ti">${n.title}</div>
-        <div class="bd"><span class="lockedTxt">Notification</span><span class="openTxt" style="display:none">${n.body}</span></div><div class="tm">${n.time}</div></div>`).join('');
+        <div class="bd"><span class="lockedTxt">Notification</span><span class="openTxt" style="opacity:0">${n.body}</span></div><div class="tm">${n.time}</div></div>`).join('');
     add(`<div id="lock"><div class="wp"></div>
       <div id="lkPad">${PAD_CLOSED}</div>
       <div id="lkDate">${cfg.date}</div><div id="lkTime"></div>
@@ -206,12 +207,16 @@
     if ($('lkPad').dataset.k !== padKey) { $('lkPad').innerHTML = open ? PAD_OPEN : PAD_CLOSED; $('lkPad').dataset.k = padKey; }
     const bounce = open ? 1 + 0.12 * Math.sin(Math.min(1, (s.pad - 0.5) * 2) * Math.PI) : 1;
     $('lkPad').style.transform = `scale(${bounce})`;
-    document.querySelectorAll('#lkNotifs .lockedTxt').forEach((e) => (e.style.display = s.reveal > 0.5 ? 'none' : 'inline'));
-    document.querySelectorAll('#lkNotifs .openTxt').forEach((e) => (e.style.display = s.reveal > 0.5 ? 'inline' : 'none'));
+    // Face ID reveal: crossfade "Notification" into the preview text in place; cards stay fully opaque
+    const sm = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+    const rv = s.reveal || 0;
+    document.querySelectorAll('#lkNotifs .lockedTxt').forEach((e) => (e.style.opacity = 1 - sm(rv * 2)));
+    document.querySelectorAll('#lkNotifs .openTxt').forEach((e) => (e.style.opacity = sm(rv * 2 - 1)));
     $('lkHint').style.opacity = s.hint || 0;
     const f = 1 - (s.fade || 0);
     document.querySelectorAll('#lock .lkBtn').forEach((e) => (e.style.opacity = f));
-    $('lkNotifs').style.opacity = f * (s.reveal > 0 && s.reveal < 1 ? 0.75 + 0.25 * Math.abs(s.reveal - 0.5) * 2 : 1);
+    // fade the cards themselves: opacity on an ancestor of a backdrop-filter element changes how the blur composites
+    document.querySelectorAll('#lkNotifs .nt').forEach((e) => (e.style.opacity = f));
     $('lkPad').style.opacity = f;
   }
 

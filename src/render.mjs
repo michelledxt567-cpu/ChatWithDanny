@@ -26,11 +26,15 @@ async function newScene() {
   await page.evaluate(() => window.ready);
   return page;
 }
+// Let the compositor present the new DOM state before capturing. Without this, layers that change
+// visibility/opacity (e.g. backdrop-filter notification cards) are sometimes captured blank.
+const settle = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
 if (stillsArg) {
   const page = await newScene();
   for (const s of stillsArg.split(',')) {
     await page.evaluate((t) => window.render(t), Number(s));
+    await settle(page);
     await page.screenshot({ path: path.join(outDir, `still_${s}.png`) });
   }
   console.log('stills done');
@@ -47,6 +51,7 @@ if (stillsArg) {
     const page = await newScene();
     for (let i = w; i < total; i += workers) {
       await page.evaluate((t) => window.render(t), i / fps);
+      await settle(page);
       await page.screenshot({ path: path.join(outDir, `f${String(i).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 93 });
       if (++done % 300 === 0) console.log(`${done}/${total} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
     }

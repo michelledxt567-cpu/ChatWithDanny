@@ -22,28 +22,53 @@
     return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
   float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
 
+  // weathered, unpainted wood. a.x runs along the grain, a.y across it.
+  vec3 oldWood(vec2 a, vec3 p, float tone) {
+    float grain = fbm(vec2(a.x * 0.5, a.y * 34.0));
+    float fine = vnoise(vec2(a.x * 1.5, a.y * 160.0));
+    vec3 c = mix(vec3(0.105, 0.06, 0.03), vec3(0.29, 0.17, 0.085), grain) * tone;
+    // darker growth-ring streaks
+    float rings = smoothstep(0.35, 0.5, abs(fract(grain * 7.0 + a.y * 3.0) - 0.5));
+    c *= 0.72 + 0.28 * rings;
+    c *= 0.78 + 0.22 * fine;
+    // sun-bleached grey patches
+    float bleach = smoothstep(0.55, 0.8, fbm(p.xy * 0.8 + p.z * 0.6 + 3.0));
+    c = mix(c, vec3(0.20, 0.18, 0.15) * tone, bleach * 0.35);
+    // dark water stains running down, rot near the bottom
+    float stain = smoothstep(0.45, 0.8, fbm(vec2((p.x + p.z) * 1.6, p.y * 0.3) + 9.0));
+    float rot = smoothstep(1.3, 0.2, p.y) * smoothstep(0.4, 0.7, fbm(p.xz * 2.0 + p.y));
+    c *= 1.0 - 0.5 * stain - 0.35 * rot;
+    // small cracks / knots
+    c *= 1.0 - 0.5 * smoothstep(0.93, 0.98, vnoise(vec2(a.x * 3.0, a.y * 60.0)));
+    return c;
+  }
+
   // returns albedo, writes glass flag & roughness
   vec3 material(int m, vec2 uv, vec3 p, out float glass, out float spec) {
     glass = 0.0; spec = 0.04;
     float n = fbm(p.xy * 3.1 + p.z * 1.7);
-    if (m == 0) { // clapboard siding, weathered grey-brown paint
-      float y = p.y / 0.19; float f = fract(y);
-      float edge = smoothstep(0.0, 0.12, f) * (0.78 + 0.22 * f);
-      vec3 paint = mix(vec3(0.36, 0.33, 0.29), vec3(0.47, 0.44, 0.38), n);
-      float peel = smoothstep(0.62, 0.7, fbm(vec2(p.x + p.z, p.y) * 2.4 + 7.0));
-      paint = mix(paint, vec3(0.24, 0.17, 0.11), peel * 0.8);
-      paint *= 0.88 + 0.12 * h21(vec2(floor(y), floor((p.x + p.z) * 0.6)));
-      return paint * edge;
+    if (m == 0) { // clapboard siding, bare weathered wood
+      float y = p.y / 0.19; float f = fract(y); float row = floor(y);
+      float along = p.x + p.z;
+      float edge = smoothstep(0.0, 0.14, f) * (0.72 + 0.28 * f);
+      // boards end at butt joints, staggered per row
+      float bl = 2.2 + 1.4 * h21(vec2(row, 3.0));
+      float seg = floor(along / bl + h21(vec2(row, 7.0)));
+      float joint = abs(fract(along / bl + h21(vec2(row, 7.0))) - 0.5) * bl;
+      vec3 c = oldWood(vec2(along + seg * 5.3, p.y + seg * 0.37), p, 0.82 + 0.3 * h21(vec2(row, seg)));
+      c *= joint > bl * 0.5 - 0.012 ? 0.45 : 1.0;
+      return c * edge;
     }
-    if (m == 1) { // trim, dirty off-white
-      vec3 c = mix(vec3(0.40, 0.38, 0.33), vec3(0.55, 0.52, 0.45), n);
-      float grime = smoothstep(0.35, 0.8, fbm(vec2(p.x * 1.5 + p.z, p.y * 6.0)));
-      c = mix(c, vec3(0.20, 0.18, 0.14), grime * 0.55);
-      return c * (0.85 + 0.15 * vnoise(p.xy * 20.0));
+    if (m == 1) { // trim boards, beams, deck sides, steps: horizontal grain
+      float across = abs(vNor.y) > 0.5 ? p.z : p.y;
+      return oldWood(vec2(p.x + p.z, across), p, 1.05);
+    }
+    if (m == 11) { // columns, corner boards: vertical grain
+      return oldWood(vec2(p.y, p.x + p.z), p, 1.05);
     }
     if (m == 2) { // arched door with glass upper half; uv 0..1
       vec2 q = uv;
-      vec3 wood = mix(vec3(0.17, 0.11, 0.07), vec3(0.26, 0.17, 0.10), fbm(vec2(q.x * 3.0, q.y * 40.0)));
+      vec3 wood = oldWood(vec2(p.y, q.x * 1.5), p, 0.85);
       // lower recessed panel
       if (q.y > 0.07 && q.y < 0.33 && q.x > 0.14 && q.x < 0.86) {
         float b = min(min(q.y - 0.07, 0.33 - q.y) * 3.0, min(q.x - 0.14, 0.86 - q.x));
@@ -63,7 +88,7 @@
     }
     if (m == 3) { // sash window, uv 0..1, 2x3 panes
       float fx = abs(fract(uv.x * 2.0) - 0.5), fy = abs(fract(uv.y * 3.0) - 0.5);
-      if (uv.x < 0.05 || uv.x > 0.95 || uv.y < 0.04 || uv.y > 0.96 || fx > 0.46 || fy > 0.44) return vec3(0.6, 0.57, 0.5) * (0.8 + 0.2 * n);
+      if (uv.x < 0.05 || uv.x > 0.95 || uv.y < 0.04 || uv.y > 0.96 || fx > 0.46 || fy > 0.44) return oldWood(vec2(p.x + p.y, p.y + p.x), p, 1.15);
       glass = 1.0; spec = 1.0;
       float curtain = smoothstep(0.35, 0.0, abs(uv.x - 0.18)) + smoothstep(0.3, 0.0, abs(uv.x - 0.84));
       return vec3(0.03, 0.035, 0.04) + vec3(0.07, 0.065, 0.055) * curtain * (0.6 + 0.4 * sin(uv.x * 90.0));
@@ -72,9 +97,9 @@
       vec2 q = uv; float lx = fract(q.x * 2.0); float side = step(0.5, q.x);
       float top = 0.80;
       bool inL = (q.y < top && abs(lx - 0.5) < 0.42) || (q.y >= top && length((vec2(lx, q.y) - vec2(0.5, top)) * vec2(1.0, 2.2)) < 0.42);
-      if (!inL || q.y < 0.03) return vec3(0.58, 0.55, 0.49) * (0.8 + 0.2 * n);
+      if (!inL || q.y < 0.03) return oldWood(vec2(p.y, p.x + p.z), p, 1.1);
       float gx = abs(fract(lx * 2.0) - 0.5), gy = abs(fract(q.y * 6.0) - 0.5);
-      if ((gx > 0.47 && q.y < top) || gy > 0.46) return vec3(0.5, 0.47, 0.42);
+      if ((gx > 0.47 && q.y < top) || gy > 0.46) return oldWood(vec2(p.y, p.x + p.z), p, 1.0);
       glass = 1.0; spec = 1.0;
       vec3 inside = vec3(0.02, 0.022, 0.025);
       // shelves of books inside (only visible when lit)
@@ -108,13 +133,13 @@
     }
     if (m == 8) { // porch floor boards
       float b = fract(p.x / 0.12);
-      vec3 c = mix(vec3(0.24, 0.21, 0.17), vec3(0.34, 0.30, 0.24), fbm(vec2(p.x * 8.0, p.z * 1.5)));
-      return c * (b < 0.06 ? 0.5 : 1.0);
+      vec3 c = oldWood(vec2(p.z + floor(p.x / 0.12) * 3.1, p.x), p, 0.8 + 0.25 * h21(vec2(floor(p.x / 0.12), 2.0)));
+      return c * (b < 0.06 ? 0.4 : 1.0);
     }
     if (m == 9) { // railing slats, uv.x across
       float s = fract(uv.x * 22.0);
       if (s > 0.55 && uv.y > 0.08 && uv.y < 0.88) discard;
-      return vec3(0.42, 0.39, 0.34) * (0.75 + 0.25 * n);
+      return oldWood(vec2(p.y, p.x), p, 1.0);
     }
     if (m == 10) { // tree silhouettes / far bushes
       return vec3(0.03, 0.035, 0.03);
@@ -189,6 +214,7 @@
     }
   }
   function box(x0, y0, z0, x1, y1, z1, mat, opt = {}) {
+    if (mat === 1 && (y1 - y0) > 1.5 * Math.max(x1 - x0, z1 - z0)) mat = 11;
     const m = (face) => (opt.faces && opt.faces[face] !== undefined ? opt.faces[face] : mat);
     quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], m('front'));
     quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], m('back'));
