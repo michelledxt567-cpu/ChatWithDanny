@@ -7,8 +7,8 @@
 //  - Materials: decades-old weathered wood, mottled silver-grey and brown, with black mildew, runoff
 //    streaks, lichen and algae, and cracked, peeling remnants of old paint; mossy shingles; grimy old glass.
 //  - November vegetation: dormant/dead lawn grass, fallen big-leaf maple leaves, bare hydrangeas with dried
-//    flower heads, evergreen rhododendrons and sword ferns, dead bracken, blackberry canes, a bare mossy
-//    maple and a pale alder, Douglas firs behind the house.
+//    flower heads, evergreen rhododendrons and sword ferns, dead bracken, blackberry canes. No trees behind
+//    the house: only the dark overcast night sky above the roofs.
 //  - Lighting with physical ratios: an overcast night sky (ambient, occluded by a baked sky-visibility
 //    volume), a distant warm sodium yard light with a shadow map, the phone's LED flash (1/d², beam cone),
 //    and thin mist (extinction, flash back-scatter).
@@ -612,12 +612,7 @@
     rhodo(4.75, 0.55, 1.15); rhodo(6.3, -0.1, 1.3); hydrangea(5.5, 0.9, 0.9);
     for (const [x, z, s, d] of [[-8.3, 3.2, 0.7, 0], [-8.6, 1.0, 0.75, 1], [7.8, -0.2, 0.7, 1], [-9.5, -1.0, 0.8, 0], [8.4, 1.4, 0.6, 0]]) fern(x, z, s, d);
     bramble(-9.6, 2.6, 14); bramble(9.4, 0.4, 8);
-    // bare big-leaf maple (left, mossy) and red alder (right), above the roofs
-    bareTree(-9.8, -3.6, 15.5, 0.42, 1); bareTree(8.6, -4.6, 13, 0.26, 2);
-    // second-growth Douglas firs behind the house
-    for (const [x, z, H] of [[-19, -12, 36], [-11, -15, 41], [-4, -13, 33], [3.5, -16, 44], [9, -12, 31], [15, -14, 38], [22, -10, 30], [-26, -7, 34],
-      [-7, -22, 40], [12, -23, 42], [0, -27, 39], [-17, -24, 37], [19, -20, 35], [27, -16, 33], [-30, -15, 36]]) fir(x, z, H, H * (0.12 + 0.12 * R()), H * 0.13, 9);
-    for (const [x, z, H] of [[11.5, 1.5, 6.5], [-12.5, 0.5, 7.5], [13.5, -1.5, 9]]) fir(x, z, H, 0.4, H * 0.24, 7);   // young firs / hemlocks
+    // no trees behind the house: only the overcast night sky shows above the roofs
   }
 
   // ---------------- GLSL ----------------
@@ -675,7 +670,7 @@
   const vec3 LAMP_C = vec3(1.0, 0.60, 0.27);     // high-pressure sodium
   const vec3 FLASH_C = vec3(1.0, 0.95, 0.88);
   const vec3 SKY_C = vec3(0.78, 0.82, 0.95);
-  float flashCone(vec3 dir) { float c = dot(dir, uCamF); return mix(0.12, 1.0, smoothstep(0.72, 0.985, c)) * step(0.0, c); }
+  float flashCone(vec3 dir) { float c = max(dot(dir, uCamF), 0.0); return pow(c, 7.0); }   // phone LED beam: bright centre, dim edges
   struct Surf { vec3 alb; vec3 n; float spec; float gloss; float trans; float occ; float glass; vec3 inside; };
   // perturb a normal by the screen-space gradient of a height field (metres)
   vec3 bumpN(vec3 n, float h) {
@@ -1214,7 +1209,7 @@
     // mist: extinction, sky airlight, and LED flash back-scatter between the lens and the surface
     float T = exp(-uFogK * dist);
     L = L * T + SKY_C * uSky * 0.35 * (1.0 - T) + LAMP_C * uLampI * 0.0004 * (1.0 - T);
-    L += FLASH_C * uFlash * flashCone(-V) * uFogK * 0.004 * (1.0 / 0.7 - 1.0 / max(dist, 0.7));
+    L += FLASH_C * uFlash * flashCone(-V) * uFogK * 0.0015 * (1.0 / 0.7 - 1.0 / max(dist, 0.7));
     oCol = vec4(L, 1.0);
   }`;
 
@@ -1229,15 +1224,16 @@
   void main() {
     vec4 a = uInvVP * vec4(vUv * 2.0 - 1.0, -1.0, 1.0), b = uInvVP * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);
     vec3 d = normalize(b.xyz / b.w - a.xyz / a.w);
-    // low overcast: cloud base faintly lit by the glow of Vernonia and Portland, brighter toward the horizon
+    // low, unbroken overcast: a dark, almost featureless cloud deck, slightly lighter toward the horizon
+    // where it catches a faint glow from distant towns
     vec2 cp = d.xz / (max(d.y, 0.0) + 0.12) * 1.3 + vec2(7.0, 3.0);
-    float cl = fbm5(cp * 0.5);
-    float glow = exp(-max(d.y, 0.0) * 4.0);
-    vec3 c = mix(SKY_C, vec3(0.9, 0.8, 0.7), glow * 0.2 * (0.5 + 0.5 * smoothstep(-0.5, 0.8, d.x)));
-    c *= (0.55 + 0.45 * glow) * (0.65 + 0.7 * cl);
+    float cl = fbm5(cp * 0.35);
+    float hor = exp(-max(d.y, 0.0) * 5.0);
+    vec3 c = mix(SKY_C, vec3(0.95, 0.82, 0.68), hor * 0.35);
+    c *= (0.45 + 0.55 * hor) * (0.82 + 0.36 * cl);
     vec3 L = c * uSky;
-    L += vec3(1.0, 0.95, 0.88) * uFlash * smoothstep(0.62, 0.95, dot(d, uCamF)) * uFogK * 0.004 / 0.7;
-    L += vec3(1.0, 0.6, 0.27) * uLampI * 0.0004;
+    L += vec3(1.0, 0.95, 0.88) * uFlash * pow(max(dot(d, uCamF), 0.0), 7.0) * uFogK * 0.0008 / 0.7;
+    L += vec3(1.0, 0.6, 0.27) * uLampI * 0.00015;
     oCol = vec4(L, 1.0);
   }`;
 
@@ -1290,7 +1286,7 @@
     c *= uGain * uWB;
     // local tone mapping: lift dark regions, hold back bright ones, relative to the blurred neighbourhood
     float Yl = lum((texture(uB4, vUv).rgb * 0.6 + texture(uB5, vUv).rgb * 0.4) * uGain * uWB);
-    c *= clamp(pow(max(Yl, 1e-4) / 0.18, -uLocal), 0.45, uLocal > 0.21 ? 1.25 : 1.7);
+    c *= clamp(pow(max(Yl, 1e-4) / 0.18, -uLocal), 0.45, uLocal < 0.1 ? 1.1 : 1.3);
     float rr = length(vUv - 0.5) * 1.4;
     c *= 1.0 - 0.35 * rr * rr;
     float Y = lum(c);
@@ -1361,6 +1357,8 @@
 
   // scene constants
   const LAMP = [9.0, 5.8, 10.0];
+  // overcast night far from town: very little sky light, one weak distant yard light
+  const SKY_I = 0.00014, LAMP_I = 0.45;
   const AO_MIN = [-17, -0.3, -10], AO_SIZE = [30, 12.6, 22], AO_RES = [150, 63, 110];
   let BUILT = false, AO_DATA = null;
 
@@ -1484,7 +1482,7 @@
       const view = lookAt(o.cam, o.target, [Math.sin(r), Math.cos(r), 0]);
       const VP = mul(perspective((o.fov || 62) * Math.PI / 180, W / H, 0.1, 400), view);
       const F = norm([o.target[0] - o.cam[0], o.target[1] - o.cam[1], o.target[2] - o.cam[2]]);
-      const flash = o.flash || 0, skyI = 0.00055 * (o.moon ?? 1);
+      const flash = o.flash || 0, skyI = SKY_I * (o.moon ?? 1);
       gl.bindFramebuffer(gl.FRAMEBUFFER, msF); gl.viewport(0, 0, W, H);
       gl.clearColor(0, 0, 0, 1); gl.clearDepth(1); gl.depthMask(true); gl.colorMask(true, true, true, true);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1501,7 +1499,7 @@
         gl.uniformMatrix4fv(L.uVP, false, VP);
         gl.uniform3fv(L.uCam, o.cam); gl.uniform3fv(L.uCamF, F); gl.uniform3fv(L.uFlashPos, [o.cam[0] + 0.012, o.cam[1] + 0.035, o.cam[2]]);
         gl.uniform3fv(L.uLamp, LAMP); gl.uniform3fv(L.uAOmin, AO_MIN); gl.uniform3fv(L.uAOsize, AO_SIZE);
-        gl.uniform1f(L.uFlash, flash * 1.0); gl.uniform1f(L.uSky, skyI); gl.uniform1f(L.uLampI, 1.6); gl.uniform1f(L.uFogK, 0.012);
+        gl.uniform1f(L.uFlash, flash * 1.0); gl.uniform1f(L.uSky, skyI); gl.uniform1f(L.uLampI, LAMP_I); gl.uniform1f(L.uFogK, 0.012);
         gl.uniform1i(L.uAO, 9); gl.uniform1i(L.uShadow, 8); gl.uniformMatrix4fv(L.uLampVP, false, LAMP_VP);
         gl.bindVertexArray(meshes[g].vao); gl.drawArrays(gl.TRIANGLES, 0, meshes[g].n);
       });
@@ -1509,7 +1507,7 @@
       gl.depthFunc(gl.LEQUAL);
       gl.useProgram(sky.p); setNoise(sky);
       gl.uniformMatrix4fv(sky.loc.uInvVP, false, inv(VP)); gl.uniform3fv(sky.loc.uCam, o.cam); gl.uniform3fv(sky.loc.uCamF, F);
-      gl.uniform1f(sky.loc.uSky, skyI); gl.uniform1f(sky.loc.uFlash, flash); gl.uniform1f(sky.loc.uFogK, 0.012); gl.uniform1f(sky.loc.uLampI, 1.6);
+      gl.uniform1f(sky.loc.uSky, skyI); gl.uniform1f(sky.loc.uFlash, flash); gl.uniform1f(sky.loc.uFogK, 0.012); gl.uniform1f(sky.loc.uLampI, LAMP_I);
       fsDraw();
       gl.disable(gl.DEPTH_TEST);
       // 4. resolve MSAA, bloom / local-exposure pyramid
@@ -1530,8 +1528,8 @@
       ['uHdr', 'uB1', 'uB2', 'uB3', 'uB4', 'uB5'].forEach((nm, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, units[i]); gl.uniform1i(post.loc[nm], i); });
       const ex = o.exposure || 1;
       gl.uniform2f(post.loc.uRes, W, H);
-      gl.uniform1f(post.loc.uGain, ex * (flash > 0.5 ? 125 : 75));
-      gl.uniform1f(post.loc.uLocal, flash > 0.5 ? 0.22 : 0.2);
+      gl.uniform1f(post.loc.uGain, ex * (flash > 0.5 ? 110 : 75));
+      gl.uniform1f(post.loc.uLocal, flash > 0.5 ? 0.08 : 0.2);
       gl.uniform1f(post.loc.uGrain, (o.grain || 0) * (flash > 0.5 ? 0.8 : 0.7));
       gl.uniform1f(post.loc.uDesat, o.desat || 0);
       gl.uniform1f(post.loc.uSeed, (o.seed || 0) % 977);
