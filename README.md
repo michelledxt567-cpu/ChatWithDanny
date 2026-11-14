@@ -46,7 +46,7 @@ The chat content is the same as in the first version. The typing was sped up to 
 | Time | Action |
 |---|---|
 | 0.45 s | The lock screen wakes at **8:23 PM**: T-Mobile, **3G**, 2 bars, low battery (red). |
-| 2.35–3.0 s | Swipe left into Camera. The night-mode viewfinder shows the weathered, grey-brown wooden porch (split boards, grime and damp near the ground) with arched double doors. |
+| 2.35–3.0 s | Swipe left into Camera. The night-mode viewfinder shows the old wooden house with arched double doors. Its bare boards have bleached silver-grey where exposed and stay brown under the porch roof. They are mottled with runoff streaks, black mildew, lichen, splits, green algae and mud splash near the ground, and a few cracked strips of old paint; the door's dark green paint has mostly peeled. The plants fit a November night: dead straw-coloured grass, fallen big-leaf maple leaves on the ground and porch, bare hydrangeas with dried flower heads, a bare mossy maple and alder, evergreen rhododendrons, sword ferns and dead bracken, blackberry canes, and Douglas firs behind the house. |
 | 3.8 s | The signal drops to 1 bar. |
 | 4.3 s | Flash is turned on ("FLASH ON"). |
 | 4.9 s | The signal goes to **no bars, 3G disappears**. |
@@ -67,7 +67,7 @@ There are no sample libraries available offline, so every sound is synthesized i
 
 ## Regenerating
 
-The sandbox has no network access. Rendering uses headless Chromium + WebGL (for the 3D house in `src/house3d.js`), and encoding uses Chrome's WebCodecs H.264/Opus with a small MP4 muxer.
+The sandbox has no network access. Rendering uses headless Chromium + WebGL (for the 3D house in `src/house3d.js`: per-material shaders, baked sky occlusion, a shadowed sodium yard light, the phone's LED flash, light mist, and a phone-camera processing pass with tone mapping, sharpening, bloom and noise), and encoding uses Chrome's WebCodecs H.264/Opus with a small MP4 muxer.
 
 ```sh
 cd src
