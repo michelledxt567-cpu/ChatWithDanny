@@ -552,8 +552,8 @@ const DICT = ['I', 'I’m', 'In', 'It', 'here', 'hey', 'her', 'help', 'hers', 'h
 const NEXT = { 'I’m': ['here', 'so', 'outside'] };
 
 // ---------- photo of the house (rendered once, same for every worker) ----------
-const BASE = { cam: [0.35, 1.55, 7.6], target: [0.2, 2.75, 0], fov: 65 };
-const BASE_WA = { cam: [0.4, 1.45, 7.9], target: [0.25, 2.6, 0], fov: 82 };
+const BASE = { cam: [0.25, 1.45, 9.6], target: [0.25, 3.25, 0], fov: 65 };
+const BASE_WA = { cam: [0.3, 1.4, 9.8], target: [0.3, 3.2, 0], fov: 82 };
 let drawVF = null, drawWA = null, PHOTO = '', ROLL = [];
 function makePhoto() {
   const c = document.createElement('canvas'); c.width = 886; c.height = 1181;

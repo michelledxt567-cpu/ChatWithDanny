@@ -1,8 +1,9 @@
 // Danny's dad's old house outside Vernonia, Oregon, at 8:23 PM on a mid-November night, as seen by the
 // protagonist's phone camera. WebGL2, everything procedural.
 //
-// The house geometry is unchanged from the earlier version (porch with square columns, arched double
-// doors, clapboard left wing with a railing, tall twin gothic-arch bay on the right). New:
+// The house follows the user's wireframe reference: portico on panelled columns with a dentilled cornice, arched
+// double doors, a projecting clapboard wing on the left, a tower with a cusped library window on the right, paved forecourt.
+// Rooms behind the windows are drawn by interior mapping (room box plus furniture silhouettes and curtains).
 //  - Materials: decades-old weathered wood, mottled silver-grey and brown, with black mildew, runoff
 //    streaks, lichen and algae, and cracked, peeling remnants of old paint; mossy shingles; grimy old glass.
 //  - November vegetation: dormant/dead lawn grass, fallen big-leaf maple leaves, bare hydrangeas with dried
@@ -26,106 +27,413 @@
   const UP = [0, 1, 0];
 
   // ---------------- materials and their shader groups ----------------
-  // 0 siding, 1 trim (horizontal grain), 11 trim (vertical grain), 8 porch floor, 9 railing slats,
-  // 2 door, 3 sash window, 4 bay window, 5 ground, 6 concrete path, 7 shingles,
+  // wood: 0 clapboard siding, 1 trim (horizontal grain), 11 trim (vertical grain), 2 door wood, 3 window sash wood,
+  //       8 porch floor boards, 9 railing slats, 13 beadboard porch ceiling
+  // 4 window glass (with the rooms behind it), 5 lawn ground, 6 concrete paving slabs, 10 gravel, 7 shingles, 17 metal
   // 12 grass, 15 fern/bracken, 18 leaves, 19 dried flower heads, 14 bark/twigs/canes, 16 fir foliage
-  const GROUPS = [[0, 1, 8, 9, 11], [2, 3, 4], [5, 6], [7], [12], [15, 18, 19], [14], [16]];
+  const GROUPS = [[0, 1, 2, 3, 8, 9, 11, 13], [4], [5, 6, 10], [7, 17], [12], [15, 18, 19], [14], [16]];
   const GROUP_OF = []; GROUPS.forEach((g, i) => g.forEach((m) => (GROUP_OF[m] = i)));
   const GRASS_GROUP = 4;
   const FSZ = 11;   // pos3 nor3 uv2 aux2 mat1
   const geo = GROUPS.map(() => []);
   function V(p, n, u, v, mat, aux = [0, 0]) { geo[GROUP_OF[mat]].push(p[0], p[1], p[2], n[0], n[1], n[2], u, v, aux[0], aux[1], mat); }
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const neg = (a) => [-a[0], -a[1], -a[2]];
 
-  // ---------------- house geometry (identical layout to the previous version) ----------------
+  // ---------------- geometry helpers ----------------
   function quad(p0, p1, p2, p3, n, mat, aux) {
     const uv = [[0, 0], [1, 0], [1, 1], [0, 1]], P = [p0, p1, p2, p3];
     for (const i of [0, 1, 2, 0, 2, 3]) V(P[i], n, uv[i][0], uv[i][1], mat, aux);
   }
   function box(x0, y0, z0, x1, y1, z1, mat, opt = {}) {
     if (mat === 1 && (y1 - y0) > 1.5 * Math.max(x1 - x0, z1 - z0)) mat = 11;
-    const m = (face) => (opt.faces && opt.faces[face] !== undefined ? opt.faces[face] : mat);
-    quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], m('front'));
-    quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], m('back'));
-    quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], m('left'));
-    quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], m('right'));
-    quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], [0, 1, 0], m('top'));
-    quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [0, -1, 0], m('bottom'));
+    const m = (face) => (opt.faces && opt.faces[face] !== undefined ? opt.faces[face] : mat), a = opt.aux;
+    quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], m('front'), a);
+    quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], m('back'), a);
+    quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], m('left'), a);
+    quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], m('right'), a);
+    quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], [0, 1, 0], m('top'), a);
+    quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [0, -1, 0], m('bottom'), a);
   }
-  const panelZ = (x0, y0, x1, y1, z, mat) => quad([x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z], [0, 0, 1], mat);
   function tri(a, b, c, mat, aux) {
-    const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-    const n = norm(cross(e1, e2));
+    const n = norm(cross(sub(b, a), sub(c, a)));
     for (const p of [a, b, c]) V(p, n, 0, 0, mat, aux);
   }
-  function slope(a, b, c, d, mat) { tri(a, b, c, mat); tri(a, c, d, mat); }
-
-  function buildHouse() {
-    const SID = 0, TRIM = 1, DOOR = 2, WIN = 3, BAY = 4, GROUND = 5, PATH = 6, ROOF = 7, FLOOR = 8, RAIL = 9;
-    // ground (larger now, so the trees behind stand on it) + path
-    for (let x = -60; x < 60; x += 20) for (let z = -60; z < 60; z += 20) quad([x, 0, z + 20], [x + 20, 0, z + 20], [x + 20, 0, z], [x, 0, z], [0, 1, 0], GROUND);
-    quad([-1.6, 0.005, 14], [1.6, 0.005, 14], [1.6, 0.005, 2.9], [-1.6, 0.005, 2.9], [0, 1, 0], PATH);
-    quad([-7.5, 0.006, 3.4], [7.5, 0.006, 3.4], [7.5, 0.006, 2.6], [-7.5, 0.006, 2.6], [0, 1, 0], PATH);
-    // porch deck + steps
-    box(-2.3, 0, 0, 2.3, 0.46, 2.3, TRIM, { faces: { top: FLOOR } });
-    box(-1.5, 0, 2.3, 1.5, 0.31, 2.62, TRIM, { faces: { top: FLOOR } });
-    box(-1.5, 0, 2.62, 1.5, 0.155, 2.94, TRIM, { faces: { top: FLOOR } });
-    // facade behind porch
-    box(-2.3, 0.46, -0.35, 2.3, 6.6, 0, SID);
-    // door surround + doors
-    box(-0.86, 0.46, 0, 0.86, 2.98, 0.07, TRIM);
-    panelZ(-0.72, 0.46, -0.03, 2.86, 0.075, DOOR);
-    panelZ(0.03, 0.46, 0.72, 2.86, 0.075, DOOR);
-    box(-0.04, 0.46, 0.07, 0.04, 2.9, 0.1, TRIM);
-    // porch side walls with windows
-    panelZ(-2.0, 1.15, -1.25, 2.6, 0.012, WIN); box(-2.07, 1.08, 0, -1.18, 1.15, 0.08, TRIM);
-    panelZ(1.25, 1.15, 2.0, 2.6, 0.012, WIN); box(1.18, 1.08, 0, 2.07, 1.15, 0.08, TRIM);
-    // columns: base, shaft, capital
-    for (const x of [-1.95, 1.95]) {
-      box(x - 0.25, 0.46, 1.8, x + 0.25, 1.05, 2.3, TRIM);
-      box(x - 0.17, 1.05, 1.88, x + 0.17, 2.95, 2.22, TRIM);
-      box(x - 0.26, 2.95, 1.79, x + 0.26, 3.12, 2.31, TRIM);
-      box(x - 0.2, 1.05, 1.84, x + 0.2, 1.14, 2.26, TRIM);
+  function slope(a, b, c, d, mat, aux) { tri(a, b, c, mat, aux); tri(a, c, d, mat, aux); }
+  // oriented box along a segment: half-width hw across (perpendicular to `up`), half-height hh
+  function beam(a, b, hw, hh, mat, up = UP, aux) {
+    const ax = norm(sub(b, a));
+    let t = cross(ax, up); if (Math.hypot(t[0], t[1], t[2]) < 1e-4) t = cross(ax, [1, 0, 0]);
+    t = norm(t); const u = cross(t, ax);
+    if (mat === 1 && Math.abs(ax[1]) > 0.8) mat = 11;
+    const P = (p, s1, s2) => addv(addv(p, t, s1 * hw), u, s2 * hh);
+    quad(P(a, 1, -1), P(b, 1, -1), P(b, 1, 1), P(a, 1, 1), t, mat, aux);
+    quad(P(a, -1, 1), P(b, -1, 1), P(b, -1, -1), P(a, -1, -1), neg(t), mat, aux);
+    quad(P(a, -1, 1), P(a, 1, 1), P(b, 1, 1), P(b, -1, 1), u, mat, aux);
+    quad(P(a, 1, -1), P(a, -1, -1), P(b, -1, -1), P(b, 1, -1), neg(u), mat, aux);
+    quad(P(a, -1, -1), P(a, 1, -1), P(a, 1, 1), P(a, -1, 1), neg(ax), mat, aux);
+    quad(P(b, 1, -1), P(b, -1, -1), P(b, -1, 1), P(b, 1, 1), ax, mat, aux);
+  }
+  // front-facing (+z) region between y = lo(x) and y = hi(x), sampled at xs
+  function regionZ(xs, lo, hi, z, mat, aux, uvFn) {
+    for (let i = 0; i < xs.length - 1; i++) {
+      const xa = xs[i], xb = xs[i + 1]; if (xb - xa < 1e-6) continue;
+      const P = [[xa, lo(xa), z], [xb, lo(xb), z], [xb, hi(xb), z], [xa, hi(xa), z]];
+      if (P[3][1] - P[0][1] < 1e-5 && P[2][1] - P[1][1] < 1e-5) continue;
+      for (const k of [0, 1, 2, 0, 2, 3]) { const p = P[k], uv = uvFn ? uvFn(p) : [0, 0]; V(p, [0, 0, 1], uv[0], uv[1], mat, aux); }
     }
-    // porch roof: entablature + soffit + low-slope roof
-    box(-2.45, 3.12, -0.1, 2.45, 3.48, 2.48, TRIM);
-    box(-2.6, 3.48, -0.1, 2.6, 3.58, 2.65, TRIM);
-    slope([-2.6, 3.58, 2.65], [2.6, 3.58, 2.65], [2.6, 3.95, -0.1], [-2.6, 3.95, -0.1], ROOF);
-    box(-0.07, 2.98, 1.0, 0.07, 3.12, 1.14, TRIM); // old light fixture (unlit)
-    // upper floor of main block: window + gable
-    box(-1.0, 4.3, 0, 1.0, 4.38, 0.1, TRIM);
-    panelZ(-0.9, 4.38, 0.9, 5.75, 0.012, WIN);
-    box(-1.0, 5.75, 0, 1.0, 5.9, 0.12, TRIM);
-    box(-2.5, 6.6, -0.5, 2.5, 6.8, 0.2, TRIM);
-    tri([-2.5, 6.8, 0.0], [2.5, 6.8, 0.0], [0, 8.5, 0.0], SID);
-    slope([-2.8, 6.65, 0.25], [0, 8.75, 0.25], [0, 8.75, -6], [-2.8, 6.65, -6], ROOF);
-    slope([0, 8.75, 0.25], [2.8, 6.65, 0.25], [2.8, 6.65, -6], [0, 8.75, -6], ROOF);
-    // ---- left wing (projects forward, clapboard side visible) ----
-    box(-8.5, 0.3, -2.0, -2.3, 3.7, 0.9, SID);
-    box(-8.5, 0.0, -2.0, -2.3, 0.3, 0.95, TRIM);
-    panelZ(-5.1, 1.25, -3.6, 3.0, 0.902, WIN);
-    box(-5.22, 1.12, 0.9, -3.48, 1.25, 1.02, TRIM); box(-5.22, 3.0, 0.9, -3.48, 3.12, 1.02, TRIM);
-    panelZ(-7.6, 1.25, -6.4, 3.0, 0.902, WIN);
-    box(-7.72, 1.12, 0.9, -6.28, 1.25, 1.02, TRIM);
-    box(-8.6, 3.7, -2.0, -2.3, 3.92, 1.35, TRIM);
-    slope([-8.6, 3.92, 1.35], [-2.3, 3.92, 1.35], [-2.3, 5.4, -2.0], [-8.6, 5.4, -2.0], ROOF);
-    box(-2.42, 0.3, 0.75, -2.3, 3.7, 0.92, TRIM); // corner board
-    box(-2.62, 0.3, 1.2, -2.54, 3.85, 1.28, TRIM); // gutter/downspout
-    // railing in front of left wing
-    box(-8.2, 0.0, 2.35, -2.6, 0.08, 2.5, TRIM);
-    quad([-8.2, 0.08, 2.43], [-2.6, 0.08, 2.43], [-2.6, 1.0, 2.43], [-8.2, 1.0, 2.43], [0, 0, 1], RAIL);
-    box(-8.2, 1.0, 2.33, -2.6, 1.1, 2.53, TRIM);
-    for (const x of [-8.2, -5.4, -2.7]) box(x, 0, 2.32, x + 0.14, 1.18, 2.54, TRIM);
-    // ---- right bay / tower ----
-    box(2.3, 0.0, -1.0, 6.2, 0.55, 0.85, TRIM);
-    box(2.3, 0.55, -1.0, 6.2, 8.2, 0.6, SID);
-    panelZ(2.8, 1.25, 5.7, 4.95, 0.605, BAY);
-    box(2.66, 1.1, 0.6, 5.84, 1.25, 0.82, TRIM);
-    box(2.66, 4.95, 0.6, 5.84, 5.15, 0.75, TRIM);
-    box(4.18, 1.25, 0.6, 4.32, 4.6, 0.7, TRIM);
-    box(2.66, 1.25, 0.6, 2.8, 5.0, 0.7, TRIM); box(5.7, 1.25, 0.6, 5.84, 5.0, 0.7, TRIM);
-    for (let i = 0; i < 3; i++) panelZ(2.7 + i * 1.07, 0.15, 3.62 + i * 1.07, 0.48, 0.852, TRIM);
-    panelZ(3.3, 5.7, 5.2, 7.4, 0.605, WIN);
-    box(2.2, 8.2, -1.2, 6.35, 8.45, 0.8, TRIM);
+  }
+  // surface following y = f(x) between z0 and z1; sgn -1: faces down (soffit of an arch)
+  function revealZ(xs, f, z0, z1, mat, sgn, aux) {
+    for (let i = 0; i < xs.length - 1; i++) {
+      const xa = xs[i], xb = xs[i + 1]; if (xb - xa < 1e-6) continue;
+      const ya = f(xa), yb = f(xb), n = norm([-(yb - ya) * sgn, (xb - xa) * sgn, 0]);
+      quad([xa, ya, z0], [xb, yb, z0], [xb, yb, z1], [xa, ya, z1], n, mat, aux);
+    }
+  }
+  const arcXs = (cx, r, n = 20) => { const a = []; for (let i = 0; i <= n; i++) a.push(cx + r * Math.cos(Math.PI * (1 - i / n))); return a; };
+  const arcY = (cx, cy, r) => (x) => cy + Math.sqrt(Math.max(0, r * r - (x - cx) * (x - cx)));
+  // half ring (semicircular arch) between radii r0 and r1, front face at z1, soffit from z0 to z1
+  function archRing(cx, cy, r0, r1, z0, z1, mat, n = 24, opt = {}) {
+    for (let i = 0; i < n; i++) {
+      const a0 = Math.PI * i / n, a1 = Math.PI * (i + 1) / n, c0 = [Math.cos(a0), Math.sin(a0)], c1 = [Math.cos(a1), Math.sin(a1)];
+      const P = (c, r, z) => [cx + c[0] * r, cy + c[1] * r, z];
+      quad(P(c0, r0, z1), P(c0, r1, z1), P(c1, r1, z1), P(c1, r0, z1), [0, 0, 1], mat);
+      if (opt.inner !== false) quad(P(c0, r0, z0), P(c0, r0, z1), P(c1, r0, z1), P(c1, r0, z0), norm([-(c0[0] + c1[0]), -(c0[1] + c1[1]), 0]), mat);
+      if (opt.outer) quad(P(c0, r1, z0), P(c0, r1, z1), P(c1, r1, z1), P(c1, r1, z0), norm([c0[0] + c1[0], c0[1] + c1[1], 0]), mat);
+    }
+  }
+  // raised panel facing +z: bevel from zLow at the edge to a flat field at zHigh
+  function raisedPanel(x0, y0, x1, y1, zLow, zHigh, bev, mat) {
+    quad([x0 + bev, y0 + bev, zHigh], [x1 - bev, y0 + bev, zHigh], [x1 - bev, y1 - bev, zHigh], [x0 + bev, y1 - bev, zHigh], [0, 0, 1], mat);
+    slope([x0, y0, zLow], [x1, y0, zLow], [x1 - bev, y0 + bev, zHigh], [x0 + bev, y0 + bev, zHigh], mat);
+    slope([x1, y0, zLow], [x1, y1, zLow], [x1 - bev, y1 - bev, zHigh], [x1 - bev, y0 + bev, zHigh], mat);
+    slope([x1, y1, zLow], [x0, y1, zLow], [x0 + bev, y1 - bev, zHigh], [x1 - bev, y1 - bev, zHigh], mat);
+    slope([x0, y1, zLow], [x0, y0, zLow], [x0 + bev, y0 + bev, zHigh], [x0 + bev, y1 - bev, zHigh], mat);
+  }
+  // a rectangle of small mouldings on a vertical face (centre c on the face, outward normal N)
+  function moldFrame(c, N, hu, y0, y1, w, d, mat) {
+    const U = cross(UP, N), at = (u, y) => addv(addv([c[0], y, c[2]], U, u), N, d / 2);
+    beam(at(-hu, y0 + w / 2), at(hu, y0 + w / 2), w / 2, d / 2, mat, N);
+    beam(at(-hu, y1 - w / 2), at(hu, y1 - w / 2), w / 2, d / 2, mat, N);
+    beam(at(-hu + w / 2, y0 + w), at(-hu + w / 2, y1 - w), w / 2, d / 2, mat, N);
+    beam(at(hu - w / 2, y0 + w), at(hu - w / 2, y1 - w), w / 2, d / 2, mat, N);
+  }
+  const FACES4 = [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]];
+  // glass quad in a local window frame (O lower-left on the glass plane, R right, N outward); uv = metres from the window's left edge
+  function glassQuad(O, R, N, u0, v0, u1, v1, type, W, ux0 = 0) {
+    const P = (u, v) => addv(addv(O, R, u), UP, v);
+    const pts = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]];
+    for (const k of [0, 1, 2, 0, 2, 3]) { const [u, v] = pts[k]; V(P(u, v), N, ux0 + u, v, 4, [type, W]); }
+  }
+  // double-hung sash window in an axis-aligned local frame: O = lower-left corner of the opening on the wall face
+  function sashWindow(O, N, w, h, rec, cols, rows, type, W = w, ux0 = 0) {
+    const R = cross(UP, N);
+    const lbox = (u0, v0, w0, u1, v1, w1, mat) => {
+      const a = addv(addv(addv(O, R, u0), UP, v0), N, w0), b = addv(addv(addv(O, R, u1), UP, v1), N, w1);
+      box(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2]), Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2]), mat);
+    };
+    const vm = h / 2, S = 3;
+    for (const up of [false, true]) {
+      const v0 = up ? vm - 0.02 : 0, v1 = up ? h : vm + 0.02, wg = up ? -rec + 0.045 : -rec, wf = wg + 0.035;
+      const bot = up ? 0.04 : 0.08, top = up ? 0.055 : 0.04;
+      lbox(0, v0, wg, 0.05, v1, wf, S); lbox(w - 0.05, v0, wg, w, v1, wf, S);
+      lbox(0.05, v0, wg, w - 0.05, v0 + bot, wf, S); lbox(0.05, v1 - top, wg, w - 0.05, v1, wf, S);
+      const gu0 = 0.05, gu1 = w - 0.05, gv0 = v0 + bot, gv1 = v1 - top;
+      for (let i = 1; i < cols; i++) { const u = gu0 + (gu1 - gu0) * i / cols; lbox(u - 0.01, gv0, wg, u + 0.01, gv1, wg + 0.022, S); }
+      for (let j = 1; j < rows; j++) { const v = gv0 + (gv1 - gv0) * j / rows; lbox(gu0, v - 0.01, wg, gu1, v + 0.01, wg + 0.022, S); }
+      glassQuad(addv(O, N, wg), R, N, gu0, gv0, gu1, gv1, type, W, ux0);
+    }
+    // stops / frame inside the opening
+    lbox(-0.0, 0, -rec - 0.02, 0.025, h, -rec + 0.09, S); lbox(w - 0.025, 0, -rec - 0.02, w, h, -rec + 0.09, S);
+    lbox(0, h - 0.025, -rec - 0.02, w, h, -rec + 0.09, S);
+  }
+  // window casings on a wall face (axis-aligned local frame)
+  function casing(O, N, w, h, cw, d, mat = 1) {
+    const R = cross(UP, N);
+    const lbox = (u0, v0, w0, u1, v1, w1) => {
+      const a = addv(addv(addv(O, R, u0), UP, v0), N, w0), b = addv(addv(addv(O, R, u1), UP, v1), N, w1);
+      box(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2]), Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2]), mat);
+    };
+    lbox(-cw, -0.02, 0, 0, h, d); lbox(w, -0.02, 0, w + cw, h, d);                      // side casings
+    lbox(-cw - 0.03, h, 0, w + cw + 0.03, h + cw * 1.1, d + 0.01);                     // head casing
+    lbox(-cw - 0.06, h + cw * 1.1, 0, w + cw + 0.06, h + cw * 1.1 + 0.04, d + 0.06);   // drip cap
+    lbox(-cw - 0.04, -0.06, -0.06, w + cw + 0.04, 0.0, d + 0.06);                      // sill
+    lbox(-cw + 0.02, -0.06 - cw * 0.9, 0, w + cw - 0.02, -0.06, d);                    // apron
+  }
+
+  // ---------------- the house, after the user's reference (Victorian entry, see work/house_ref_plan.md) ----------------
+  function buildHouse() {
+    const SID = 0, TRIM = 1, DOOR = 2, SASH = 3, GROUND = 5, PAVE = 6, ROOF = 7, FLOOR = 8, GRAVEL = 10, CEIL = 13, METAL = 17;
+    const GALV = [0, 0], BRASS = [1, 0], IRON = [2, 0], FROST = [3, 0];
+    // ground, forecourt paving, gravel strip along the left wing
+    for (let x = -60; x < 60; x += 20) for (let z = -60; z < 60; z += 20) quad([x, 0, z + 20], [x + 20, 0, z + 20], [x + 20, 0, z], [x, 0, z], [0, 1, 0], GROUND);
+    const flat = (x0, z0, x1, z1, y, mat) => quad([x0, y, z1], [x1, y, z1], [x1, y, z0], [x0, y, z0], [0, 1, 0], mat);
+    flat(-8, 3.55, 9, 16, 0.012, PAVE); flat(-2.25, 1.6, 9, 3.55, 0.012, PAVE); flat(4.3, -0.6, 9, 1.6, 0.012, PAVE);
+    flat(-2.6, 0, -2.25, 3.55, 0.008, GRAVEL); flat(-2.25, 0, -2.0, 1.6, 0.008, GRAVEL);
+
+    // ---- porch deck, long low step, worn stone landing ----
+    box(-2.0, 0, 0, 1.70, 0.22, 2.15, TRIM, { faces: { top: FLOOR } });
+    box(-2.35, 0, 2.15, 1.70, 0.115, 2.47, TRIM, { faces: { top: FLOOR } });
+    box(-1.3, 0, 2.47, 1.3, 0.05, 2.85, PAVE);
+
+    // ---- centre block: front wall (with openings), body, eave, gable, roof ----
+    const WZ0 = -0.3;
+    box(-2.6, 0, -6, 1.70, 7.0, WZ0, SID);
+    box(-2.6, 0, WZ0, -1.30, 7.0, 0, SID); box(1.30, 0, WZ0, 1.70, 7.0, 0, SID);
+    box(-1.30, 3.26, WZ0, 1.30, 4.75, 0, SID); box(-1.30, 6.30, WZ0, 1.30, 7.0, 0, SID);
+    box(-1.30, 4.75, WZ0, -0.60, 6.30, 0, SID); box(1.00, 4.75, WZ0, 1.30, 6.30, 0, SID); box(0.12, 4.75, WZ0, 0.28, 6.30, 0, SID);
+    // paired 2-over-2 windows over the porch
+    sashWindow([-0.60, 4.75, 0], [0, 0, 1], 0.72, 1.55, 0.12, 2, 1, 3, 1.6, 0);
+    sashWindow([0.28, 4.75, 0], [0, 0, 1], 0.72, 1.55, 0.12, 2, 1, 3, 1.6, 0.88);
+    box(-0.74, 4.73, 0, -0.60, 6.30, 0.03, TRIM); box(1.00, 4.73, 0, 1.14, 6.30, 0.03, TRIM); box(0.09, 4.73, 0, 0.31, 6.30, 0.035, TRIM);
+    box(-0.80, 6.30, 0, 1.20, 6.48, 0.05, TRIM); box(-0.88, 6.48, 0, 1.28, 6.56, 0.13, TRIM); box(-0.84, 6.56, 0, 1.24, 6.6, 0.1, TRIM);
+    box(-0.82, 4.66, -0.03, 1.22, 4.75, 0.11, TRIM);
+    for (const x of [-0.66, 1.06]) box(x - 0.04, 4.50, 0, x + 0.04, 4.66, 0.09, TRIM);
+    // frieze band, eaves along the sides, gable wall with a vent, rake boards, roof
+    box(-2.63, 6.80, -6, 1.73, 7.0, 0.03, TRIM);
+    tri([-2.6, 7.0, 0], [1.70, 7.0, 0], [-0.45, 8.8, 0], SID);
+    const GX = -0.45;
+    for (const s of [-1, 1]) {
+      const ex = s < 0 ? -2.95 : 2.05, a = [ex, 6.71, 0.4], b = [GX, 8.8, 0.4], ax = norm(sub(b, a));
+      const dn = s < 0 ? [ax[1], -ax[0], 0] : [-ax[1], ax[0], 0];   // perpendicular, under the roof
+      beam(addv(addv(a, dn, 0.1), [0, 0, -0.04]), addv(addv(b, dn, 0.1), [0, 0, -0.04]), 0.035, 0.12, TRIM);
+      slope(s < 0 ? [ex, 6.71, 0.4] : [GX, 8.8, 0.4], s < 0 ? [GX, 8.8, 0.4] : [ex, 6.71, 0.4], s < 0 ? [GX, 8.8, -6] : [ex, 6.71, -6], s < 0 ? [ex, 6.71, -6] : [GX, 8.8, -6], ROOF);
+    }
+    // soffit of the gable overhang (both rakes)
+    slope([-2.95, 6.70, 0.4], [GX, 8.79, 0.4], [GX, 8.79, 0.0], [-2.95, 6.70, 0.0], TRIM);
+    slope([GX, 8.79, 0.4], [2.05, 6.70, 0.4], [2.05, 6.70, 0.0], [GX, 8.79, 0.0], TRIM);
+    beam([GX, 8.82, 0.42], [GX, 8.82, -6], 0.06, 0.04, ROOF);
+    box(-3.07, 6.56, -6, -2.95, 6.72, 0.4, METAL, { aux: GALV });
+    cyl([-3.0, 6.58, 0.3], [-3.0, 5.25, 0.3], 0.04, 0.04, 8, METAL, GALV);
+    // gable vent: round-headed, louvered
+    archRing(GX, 7.95, 0.22, 0.29, 0, 0.06, TRIM, 16, { outer: true });
+    box(GX - 0.29, 7.45, 0, GX - 0.22, 7.95, 0.06, TRIM); box(GX + 0.22, 7.45, 0, GX + 0.29, 7.95, 0.06, TRIM); box(GX - 0.33, 7.38, 0, GX + 0.33, 7.45, 0.09, TRIM);
+    regionZ(arcXs(GX, 0.22, 12), () => 7.45, arcY(GX, 7.95, 0.22), 0.005, 3);
+    for (let y = 7.5; y < 8.1; y += 0.075) box(GX - 0.22, y, 0.01, GX + 0.22, y + 0.025, 0.04, TRIM);
+
+    // ---- door surround: jambs, central mullion, spandrels round two arches, archivolts, head ----
+    const SPR = 2.36, LR = 0.51, SZ0 = -0.12, SZ1 = 0.06;
+    box(-1.30, 0.22, SZ0, -1.12, SPR, SZ1, TRIM); box(1.12, 0.22, SZ0, 1.30, SPR, SZ1, TRIM); box(-0.10, 0.22, SZ0, 0.10, SPR, SZ1, TRIM);
+    const gArch = (x) => (x > -1.12 && x < -0.10) ? arcY(-0.61, SPR, LR)(x) : (x > 0.10 && x < 1.12) ? arcY(0.61, SPR, LR)(x) : SPR;
+    regionZ([-1.30, ...arcXs(-0.61, LR, 28), ...arcXs(0.61, LR, 28), 1.30], gArch, () => 3.0, SZ1, TRIM);
+    for (const cx of [-0.61, 0.61]) {
+      revealZ(arcXs(cx, LR, 28), arcY(cx, SPR, LR), SZ0, SZ1, TRIM, -1);
+      archRing(cx, SPR, LR, LR + 0.09, SZ1, SZ1 + 0.025, TRIM, 28, { outer: true });
+      box(cx - LR - 0.09, 0.50, SZ1, cx - LR, SPR, SZ1 + 0.025, TRIM); box(cx + LR, 0.50, SZ1, cx + LR + 0.09, SPR, SZ1 + 0.025, TRIM);
+      box(cx - LR - 0.10, 0.22, SZ1, cx - LR + 0.005, 0.50, SZ1 + 0.04, TRIM); box(cx + LR - 0.005, 0.22, SZ1, cx + LR + 0.10, 0.50, SZ1 + 0.04, TRIM);
+      box(cx - 0.065, SPR + LR - 0.03, SZ1, cx + 0.065, 3.0, SZ1 + 0.055, TRIM);   // keystone
+    }
+    for (const x of [-1.215, 0, 1.215]) { box(x - 0.11, SPR - 0.08, SZ1, x + 0.11, SPR, SZ1 + 0.045, TRIM); box(x - 0.05, 2.76, SZ1, x + 0.05, 2.86, SZ1 + 0.03, TRIM); }
+    box(-1.30, 3.0, SZ0, 1.30, 3.18, 0.085, TRIM); box(-1.30, 3.18, SZ0, 1.30, 3.26, 0.12, TRIM);
+
+    // ---- the two door leaves: stiles and rails, raised lower panel, arched glazing with muntins ----
+    for (const cx of [-0.61, 0.61]) {
+      const x0 = cx - LR, x1 = cx + LR, zb = -0.17, zf = -0.12, st = 0.13, rg = LR - st, gz = zf - 0.03;
+      box(x0, 0.22, zb, x0 + st, SPR, zf, DOOR); box(x1 - st, 0.22, zb, x1, SPR, zf, DOOR);
+      box(x0 + st, 0.22, zb, x1 - st, 0.52, zf, DOOR); box(x0 + st, 1.14, zb, x1 - st, 1.28, zf, DOOR);
+      box(x0 + st, 0.52, zb, x1 - st, 1.14, zf - 0.022, DOOR);
+      raisedPanel(x0 + st + 0.025, 0.545, x1 - st - 0.025, 1.115, zf - 0.022, zf - 0.007, 0.07, DOOR);
+      for (const [a, b, c, d] of [[x0 + st, 0.52, x1 - st, 0.54], [x0 + st, 1.12, x1 - st, 1.14], [x0 + st, 0.54, x0 + st + 0.02, 1.12], [x1 - st - 0.02, 0.54, x1 - st, 1.12]]) box(a, b, zf - 0.022, c, d, zf - 0.006, DOOR);
+      archRing(cx, SPR, rg, LR, zb, zf, DOOR, 24);
+      const top = arcY(cx, SPR, rg), gx0 = x0 + st, gx1 = x1 - st;
+      regionZ(arcXs(cx, rg, 24), () => 1.28, top, gz, 4, [0, 2.24], (p) => [p[0] + 1.12, p[1] - 1.28]);
+      for (let k = 1; k < 4; k++) { const xm = gx0 + (gx1 - gx0) * k / 4; box(xm - 0.011, 1.28, gz, xm + 0.011, top(xm) - 0.004, zf - 0.006, DOOR); }
+      for (let k = 1; k <= 4; k++) { const y = 1.28 + (SPR - 1.28) * k / 4; box(gx0, y - 0.011, gz, gx1, y + 0.011, zf - 0.006, DOOR); }
+      archRing(cx, SPR, rg * 0.55 - 0.011, rg * 0.55 + 0.011, gz, zf - 0.006, DOOR, 16, { outer: true });
+      const kx = cx < 0 ? x1 - 0.07 : x0 + 0.07;
+      box(kx - 0.024, 0.93, zf, kx + 0.024, 1.17, zf + 0.006, METAL, { aux: BRASS });
+      cyl([kx, 1.06, zf + 0.006], [kx, 1.06, zf + 0.055], 0.012, 0.012, 6, METAL, BRASS);
+      cyl([kx, 1.06, zf + 0.045], [kx, 1.06, zf + 0.07], 0.03, 0.026, 10, METAL, BRASS);
+      if (cx < 0) box(cx - 0.14, 1.185, zf, cx + 0.14, 1.235, zf + 0.008, METAL, { aux: BRASS });   // letter slot
+    }
+
+    // ---- pilasters on the wall behind the columns ----
+    for (const x0 of [-1.56, 1.30]) {
+      const x1 = x0 + 0.26;
+      box(x0, 0.22, 0, x1, 3.36, 0.08, TRIM);
+      box(x0 - 0.025, 0.22, 0, x1 + 0.025, 0.52, 0.11, TRIM); box(x0 - 0.015, 0.52, 0, x1 + 0.015, 0.56, 0.095, TRIM);
+      box(x0 - 0.02, 3.10, 0, x1 + 0.02, 3.18, 0.10, TRIM); box(x0 - 0.035, 3.18, 0, x1 + 0.035, 3.36, 0.115, TRIM);
+      moldFrame([x0 + 0.13, 0, 0.08], [0, 0, 1], 0.09, 0.70, 2.95, 0.02, 0.012, TRIM);
+    }
+    // old mailbox on the right pilaster
+    box(1.34, 1.32, 0.08, 1.52, 1.64, 0.17, METAL, { aux: IRON }); box(1.33, 1.64, 0.075, 1.53, 1.67, 0.18, METAL, { aux: IRON });
+
+    // ---- portico columns: panelled pedestal, panelled shaft, capital with brackets under the beam ----
+    function bracket(bx, cz, s) {
+      const y0 = 2.90, y1 = 3.30, L = 0.32, n = 10, zz = [cz - 0.04, cz + 0.04];
+      const off = (y) => L * Math.pow((y - y0) / (y1 - y0), 1.8);
+      for (let i = 0; i < n; i++) {
+        const ya = y0 + (y1 - y0) * i / n, yb = y0 + (y1 - y0) * (i + 1) / n, oa = off(ya), ob = off(yb);
+        for (const [z, nz] of [[zz[1], 1], [zz[0], -1]]) {
+          const P = [[bx, ya, z], [bx + s * oa, ya, z], [bx + s * ob, yb, z], [bx, yb, z]];
+          for (const k of [0, 1, 2, 0, 2, 3]) V(P[k], [0, 0, nz], 0, 0, 11);
+        }
+        const nn = norm([s * (yb - ya), -(ob - oa), 0]);
+        quad([bx + s * oa, ya, zz[0]], [bx + s * ob, yb, zz[0]], [bx + s * ob, yb, zz[1]], [bx + s * oa, ya, zz[1]], nn, 11);
+      }
+      box(Math.min(bx, bx + s * L), y1, zz[0], Math.max(bx, bx + s * L), 3.36, zz[1], TRIM);
+    }
+    function column(cx, cz) {
+      const B = (h0, h1, w) => box(cx - w, h0, cz - w, cx + w, h1, cz + w, TRIM);
+      B(0.22, 0.31, 0.27); B(0.31, 0.36, 0.25); B(0.36, 0.40, 0.235); B(0.40, 1.20, 0.22);
+      for (const N of FACES4) moldFrame([cx + N[0] * 0.22, 0, cz + N[2] * 0.22], N, 0.15, 0.50, 1.10, 0.025, 0.012, TRIM);
+      B(1.20, 1.25, 0.235); B(1.25, 1.31, 0.255); B(1.31, 1.36, 0.27); B(1.36, 1.41, 0.19); B(1.41, 1.45, 0.165);
+      B(1.45, 2.84, 0.145);
+      for (const N of FACES4) moldFrame([cx + N[0] * 0.145, 0, cz + N[2] * 0.145], N, 0.10, 1.58, 2.72, 0.02, 0.01, TRIM);
+      B(2.84, 2.88, 0.16); B(2.88, 2.93, 0.175); B(2.93, 3.14, 0.16); B(3.14, 3.20, 0.20); B(3.20, 3.26, 0.225); B(3.26, 3.36, 0.21);
+      for (const s of [-1, 1]) bracket(cx + s * 0.16, cz, s);
+    }
+    column(-1.45, 1.85); column(1.45, 1.85);
+
+    // ---- entablature over the porch: architrave beams, beadboard ceiling, frieze, dentils, corona, cyma ----
+    const X0 = -2.0, X1 = 2.0, ZF = 2.08;
+    box(X0, 3.36, 1.86, X1, 3.50, ZF, TRIM); box(X0, 3.36, 0, X0 + 0.22, 3.50, 1.86, TRIM);
+    box(1.50, 3.36, 0, 1.70, 3.50, 1.86, TRIM); box(X0 + 0.22, 3.36, 0, 1.50, 3.50, 0.14, TRIM);
+    box(X0, 3.50, 0, X1, 3.85, ZF, TRIM, { faces: { bottom: CEIL } });
+    box(X0, 3.85, 0, X1, 4.10, ZF, TRIM);
+    const layer = (y0, y1, pr) => {
+      box(X0 - pr, y0, ZF - 0.2, X1 + pr, y1, ZF + pr, TRIM);
+      box(X0 - pr, y0, 0, X0 + 0.2, y1, ZF - 0.2, TRIM);
+      box(X1 - 0.2, y0, 1.6, X1 + pr, y1, ZF - 0.2, TRIM);
+    };
+    layer(3.48, 3.52, 0.025); layer(3.74, 3.78, 0.03); layer(3.845, 3.98, 0.17); layer(4.06, 4.10, 0.25);
+    for (let x = X0 + 0.02; x < X1 - 0.04; x += 0.1) box(x, 3.78, ZF - 0.05, x + 0.05, 3.845, ZF + 0.06, TRIM);
+    for (let z = 0.12; z < ZF; z += 0.1) box(X0 - 0.06, 3.78, z, X0 + 0.05, 3.845, z + 0.05, TRIM);
+    for (let z = 1.66; z < ZF; z += 0.1) box(X1 - 0.05, 3.78, z, X1 + 0.06, 3.845, z + 0.05, TRIM);
+    slope([X0 - 0.17, 3.98, ZF + 0.17], [X1 + 0.17, 3.98, ZF + 0.17], [X1 + 0.24, 4.06, ZF + 0.24], [X0 - 0.24, 4.06, ZF + 0.24], TRIM);
+    slope([X0 - 0.17, 3.98, 0], [X0 - 0.17, 3.98, ZF + 0.17], [X0 - 0.24, 4.06, ZF + 0.24], [X0 - 0.24, 4.06, 0], TRIM);
+    slope([X1 + 0.17, 3.98, ZF + 0.17], [X1 + 0.17, 3.98, 1.6], [X1 + 0.24, 4.06, 1.6], [X1 + 0.24, 4.06, ZF + 0.24], TRIM);
+    // pendant lantern (unlit): canopy, rod, iron cage with frosted glass
+    const LX = 0.0, LZ = 1.0;
+    cyl([LX, 3.50, LZ], [LX, 3.475, LZ], 0.06, 0.05, 10, METAL, IRON);
+    cyl([LX, 3.48, LZ], [LX, 3.27, LZ], 0.007, 0.007, 4, METAL, IRON);
+    box(LX - 0.085, 3.0, LZ - 0.085, LX + 0.085, 3.22, LZ + 0.085, METAL, { aux: FROST });
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(LX + sx * 0.09 - 0.012, 2.99, LZ + sz * 0.09 - 0.012, LX + sx * 0.09 + 0.012, 3.23, LZ + sz * 0.09 + 0.012, METAL, { aux: IRON });
+    box(LX - 0.105, 2.965, LZ - 0.105, LX + 0.105, 2.995, LZ + 0.105, METAL, { aux: IRON });
+    box(LX - 0.11, 3.22, LZ - 0.11, LX + 0.11, 3.24, LZ + 0.11, METAL, { aux: IRON });
+    for (const [a, b] of [[[-1, -1], [1, -1]], [[1, -1], [1, 1]], [[1, 1], [-1, 1]], [[-1, 1], [-1, -1]]])
+      tri([LX + a[0] * 0.11, 3.24, LZ + a[1] * 0.11], [LX + b[0] * 0.11, 3.24, LZ + b[1] * 0.11], [LX, 3.33, LZ], METAL, IRON);
+    cyl([LX, 2.965, LZ], [LX, 2.92, LZ], 0.02, 0.005, 6, METAL, IRON);
+
+    // ---- left wing: projects 3.5 m, side wall (facing the porch) with a 6-over-6 window, hip roof, gutters ----
+    const WX = -2.6, WZF = 3.5;
+    box(-7.5, 0, WZ0, WX - 0.12, 2.62, WZF, SID);
+    box(WX - 0.12, 0, WZ0, WX, 1.0, WZF, SID); box(WX - 0.12, 2.30, WZ0, WX, 2.62, WZF, SID);
+    box(WX - 0.12, 1.0, 2.75, WX, 2.30, WZF, SID); box(WX - 0.12, 1.0, WZ0, WX, 2.30, 1.65, SID);
+    sashWindow([WX, 1.0, 2.75], [1, 0, 0], 1.10, 1.30, 0.07, 3, 2, 2);
+    casing([WX, 1.0, 2.75], [1, 0, 0], 1.10, 1.30, 0.1, 0.025);
+    box(-7.53, 0, WZ0, WX + 0.03, 0.32, WZF + 0.03, TRIM); box(-7.55, 0.32, WZ0, WX + 0.05, 0.36, WZF + 0.05, TRIM);
+    box(WX - 0.15, 0.36, WZF - 0.15, WX + 0.025, 2.62, WZF + 0.025, TRIM);   // front corner boards
+    box(WX, 0.36, 0, WX + 0.025, 2.62, 0.14, TRIM);                        // corner against the main wall
+    box(-7.53, 2.42, WZ0, WX + 0.025, 2.62, WZF + 0.025, TRIM);           // frieze board under the eave
+    // boxed eave: soffit and fascia on the side and the front
+    box(WX, 2.60, 0, -2.15, 2.64, 3.95, TRIM); box(-7.95, 2.60, WZF, WX, 2.64, 3.95, TRIM);
+    box(-2.17, 2.55, 0, -2.15, 2.75, 3.97, TRIM); box(-7.97, 2.55, 3.95, -2.15, 2.75, 3.97, TRIM);
+    box(-2.15, 2.56, 0, -2.04, 2.73, 4.06, METAL, { aux: GALV }); box(-7.95, 2.56, 3.97, -2.04, 2.73, 4.06, METAL, { aux: GALV });
+    const RH = 2.75 + 2.9 * Math.tan(Math.PI / 6);
+    slope([-2.15, 2.75, 3.95], [-2.15, 2.75, WZ0], [-5.05, RH, WZ0], [-5.05, RH, 1.05], ROOF);
+    tri([-7.95, 2.75, 3.95], [-2.15, 2.75, 3.95], [-5.05, RH, 1.05], ROOF);
+    slope([-7.95, 2.75, WZ0], [-7.95, 2.75, 3.95], [-5.05, RH, 1.05], [-5.05, RH, WZ0], ROOF);
+    beam([-2.15, 2.77, 3.95], [-5.05, RH + 0.02, 1.05], 0.05, 0.035, ROOF); beam([-7.95, 2.77, 3.95], [-5.05, RH + 0.02, 1.05], 0.05, 0.035, ROOF);
+    beam([-5.05, RH + 0.02, 1.05], [-5.05, RH + 0.02, WZ0], 0.05, 0.035, ROOF);
+    // downspouts: at the junction with the main wall and at the front corner
+    cyl([-2.09, 2.6, 0.25], [-2.5, 2.35, 0.25], 0.035, 0.035, 8, METAL, GALV);
+    cyl([-2.5, 2.36, 0.25], [-2.5, 0.18, 0.25], 0.035, 0.035, 8, METAL, GALV);
+    cyl([-2.5, 0.2, 0.25], [-2.35, 0.05, 0.42], 0.035, 0.035, 8, METAL, GALV);
+    cyl([-2.09, 2.6, 4.0], [-2.62, 2.35, 3.6], 0.035, 0.035, 8, METAL, GALV);
+    cyl([-2.62, 2.36, 3.6], [-2.62, 0.18, 3.6], 0.035, 0.035, 8, METAL, GALV);
+    cyl([-2.62, 0.2, 3.6], [-2.45, 0.05, 3.85], 0.035, 0.035, 8, METAL, GALV);
+    for (const y of [0.7, 1.6, 2.2]) { box(-2.56, y, 0.2, -2.6 + 0.0, y + 0.03, 0.3, METAL, { aux: GALV }); box(-2.68, y, 3.56, -2.6, y + 0.03, 3.64, METAL, { aux: GALV }); }
+
+    // ---- left section behind the wing: wall with a small round-headed window, hipped roof ----
+    box(-7.5, 0, -8, WX, 4.95, WZ0, SID);
+    const AWX = -3.2, AWS = 4.06;
+    regionZ(arcXs(AWX, 0.31, 14), () => 3.75, arcY(AWX, AWS, 0.31), WZ0 + 0.004, 4, [3, 0.62], (p) => [p[0] - (AWX - 0.31), p[1] - 3.75]);
+    archRing(AWX, AWS, 0.31, 0.39, WZ0, WZ0 + 0.07, TRIM, 16, { outer: true });
+    box(AWX - 0.39, 3.75, WZ0, AWX - 0.31, AWS, WZ0 + 0.07, TRIM); box(AWX + 0.31, 3.75, WZ0, AWX + 0.39, AWS, WZ0 + 0.07, TRIM);
+    box(AWX - 0.43, 3.68, WZ0, AWX + 0.43, 3.75, WZ0 + 0.11, TRIM);
+    box(AWX - 0.012, 3.75, WZ0, AWX + 0.012, AWS + 0.3, WZ0 + 0.03, SASH); box(AWX - 0.31, AWS - 0.012, WZ0, AWX + 0.31, AWS + 0.012, WZ0 + 0.03, SASH);
+    box(AWX - 0.06, AWS + 0.36, WZ0, AWX + 0.06, AWS + 0.47, WZ0 + 0.09, TRIM);
+    box(-7.53, 4.72, -8, WX, 4.95, WZ0 + 0.03, TRIM);
+    box(-7.9, 4.95, -8.4, WX, 5.10, 0.10, TRIM);
+    box(-7.9, 4.97, 0.10, WX, 5.12, 0.21, METAL, { aux: GALV });
+    for (let x = -7.6; x < WX - 0.1; x += 0.55) box(x, 4.82, WZ0, x + 0.07, 4.95, WZ0 + 0.3, TRIM);   // eave brackets
+    slope([-7.9, 5.10, 0.10], [WX, 5.10, 0.10], [WX, 7.55, -4.15], [-3.65, 7.55, -4.15], ROOF);
+    tri([-7.9, 5.10, -8.4], [-7.9, 5.10, 0.10], [-3.65, 7.55, -4.15], ROOF);
+
+    // ---- right tower: tall window with cusped heads lighting the library, panelled base, pyramid roof ----
+    const TX0 = 1.70, TX1 = 4.30, TZF = 1.6, TZW = 1.45, GZ = 1.50;
+    box(TX0, 0, -1.0, TX1, 7.6, TZW, SID);
+    box(TX0, 0, TZW, TX1, 1.05, TZF, SID); box(TX0, 4.45, TZW, TX1, 7.6, TZF, SID);
+    box(TX0, 1.05, TZW, 2.20, 4.45, TZF, SID); box(3.80, 1.05, TZW, TX1, 4.45, TZF, SID);
+    const trefoil = (cx) => (x) => {
+      const u = x - cx, L = 3.70 + Math.sqrt(Math.max(0, 0.0256 - (u + 0.2) * (u + 0.2))), Rr = 3.70 + Math.sqrt(Math.max(0, 0.0256 - (u - 0.2) * (u - 0.2)));
+      const T = Math.abs(u) <= 0.2 ? 3.78 + Math.sqrt(Math.max(0, 0.09 - (Math.abs(u) - 0.1) * (Math.abs(u) - 0.1))) : 0;
+      return Math.max(3.70, L, Rr, T);
+    };
+    for (const cx of [2.56, 3.44]) {
+      const f = trefoil(cx), xs = []; for (let i = 0; i <= 60; i++) xs.push(cx - 0.36 + 0.72 * i / 60);
+      regionZ(xs, f, () => 4.45, TZF, TRIM);
+      revealZ(xs, f, GZ, TZF, TRIM, -1);
+      regionZ(xs, () => 3.38, f, GZ, 4, [1, 1.6], (p) => [p[0] - 2.20, p[1] - 1.05]);
+      glassQuad([cx - 0.36, 1.05, GZ], [1, 0, 0], [0, 0, 1], 0, 0, 0.72, 2.23, 1, 1.6, cx - 0.36 - 2.20);
+      box(cx - 0.36, 2.17, GZ, cx + 0.36, 2.23, GZ + 0.035, SASH);
+      box(cx - 0.36, 1.05, GZ, cx - 0.33, 3.28, GZ + 0.03, SASH); box(cx + 0.33, 1.05, GZ, cx + 0.36, 3.28, GZ + 0.03, SASH);
+      box(cx - 0.36, 1.05, GZ, cx + 0.36, 1.10, GZ + 0.03, SASH);
+    }
+    box(2.92, 1.05, TZW, 3.08, 4.45, TZF - 0.005, TRIM);
+    box(2.20, 3.28, TZW, 3.80, 3.38, TZF - 0.02, TRIM);
+    for (const x0 of [1.80, 3.80]) {
+      box(x0, 1.05, TZF, x0 + 0.40, 4.45, TZF + 0.03, TRIM);
+      box(x0 + 0.08, 1.12, TZF + 0.03, x0 + 0.115, 4.38, TZF + 0.045, TRIM); box(x0 + 0.285, 1.12, TZF + 0.03, x0 + 0.32, 4.38, TZF + 0.045, TRIM);
+    }
+    box(1.74, 4.45, TZF, 4.26, 4.60, TZF + 0.06, TRIM); box(1.70, 4.60, TZF, 4.30, 4.68, TZF + 0.12, TRIM);
+    box(2.96, 4.30, TZF, 3.04, 4.45, TZF + 0.05, TRIM);
+    box(1.76, 0.97, TZF - 0.05, 4.24, 1.05, TZF + 0.13, TRIM); box(1.86, 0.84, TZF, 4.14, 0.97, TZF + 0.03, TRIM);
+    for (const x of [2.0, 3.0, 4.0]) box(x - 0.04, 0.86, TZF, x + 0.04, 0.97, TZF + 0.1, TRIM);
+    // panelled wainscot and plinth
+    box(1.80, 0.76, TZF, 4.20, 0.84, TZF + 0.025, TRIM); box(1.80, 0.26, TZF, 4.20, 0.32, TZF + 0.025, TRIM);
+    for (let i = 0; i < 4; i++) {
+      const x0 = 1.80 + i * 0.6;
+      box(x0, 0.32, TZF, x0 + 0.05, 0.76, TZF + 0.025, TRIM);
+      raisedPanel(x0 + 0.07, 0.34, x0 + 0.58, 0.74, TZF, TZF + 0.018, 0.05, TRIM);
+    }
+    box(4.15, 0.32, TZF, 4.20, 0.76, TZF + 0.025, TRIM);
+    box(1.68, 0, TZF - 0.1, 4.32, 0.26, TZF + 0.05, TRIM);
+    box(TX0, 0.26, TZF - 0.1, TX0 + 0.1, 7.3, TZF + 0.025, TRIM); box(TX1 - 0.1, 0.26, TZF - 0.1, TX1, 7.3, TZF + 0.025, TRIM);
+    box(TX0 - 0.025, 0.26, TZF - 0.12, TX0, 7.3, TZF, TRIM);
+    // two round-headed windows on the upper floor of the tower
+    for (const cx of [2.6, 3.4]) {
+      const s2 = 6.15;
+      regionZ(arcXs(cx, 0.25, 14), () => 5.2, arcY(cx, s2, 0.25), TZF + 0.004, 4, [3, 0.5], (p) => [p[0] - (cx - 0.25), p[1] - 5.2]);
+      archRing(cx, s2, 0.25, 0.33, TZF, TZF + 0.07, TRIM, 16, { outer: true });
+      box(cx - 0.33, 5.2, TZF, cx - 0.25, s2, TZF + 0.07, TRIM); box(cx + 0.25, 5.2, TZF, cx + 0.33, s2, TZF + 0.07, TRIM);
+      box(cx - 0.37, 5.12, TZF, cx + 0.37, 5.2, TZF + 0.11, TRIM);
+      box(cx - 0.012, 5.2, TZF, cx + 0.012, s2 + 0.24, TZF + 0.03, SASH); box(cx - 0.25, 5.68, TZF, cx + 0.25, 5.72, TZF + 0.035, SASH);
+    }
+    box(TX0 - 0.03, 7.25, -1.0, TX1 + 0.03, 7.6, TZF + 0.03, TRIM);
+    box(TX0 - 0.45, 7.6, -1.45, TX1 + 0.45, 7.78, TZF + 0.45, TRIM);
+    for (let x = TX0 + 0.1; x < TX1; x += 0.42) box(x, 7.36, TZF, x + 0.08, 7.6, TZF + 0.4, TRIM);
+    box(TX0 - 0.47, 7.62, TZF + 0.45, TX1 + 0.47, 7.80, TZF + 0.55, METAL, { aux: GALV });
+    const AP = [3.0, 10.1, 0.3], E = [[1.25, -1.45], [4.75, -1.45], [4.75, 2.05], [1.25, 2.05]];
+    for (let i = 0; i < 4; i++) { const a = E[(i + 3) % 4], b = E[i]; tri([a[0], 7.78, a[1]], [b[0], 7.78, b[1]], AP, ROOF); }
+    for (const e of E) beam([e[0], 7.8, e[1]], [AP[0], AP[1] + 0.02, AP[2]], 0.05, 0.035, ROOF);
+    cyl(AP, addv(AP, UP, 0.55), 0.03, 0.012, 6, METAL, IRON);
+    cyl(addv(AP, UP, 0.2), addv(AP, UP, 0.28), 0.05, 0.05, 8, METAL, IRON);
+
+    // ---- right section, set back ----
+    box(TX1, 0, -8, 7.5, 5.0, -0.6, SID);
+    sashWindow([5.1, 1.1, -0.6], [0, 0, 1], 0.9, 1.5, 0.1, 2, 1, 3);
+    casing([5.1, 1.1, -0.6], [0, 0, 1], 0.9, 1.5, 0.1, 0.025);
+    box(TX1, 0, -0.6, 7.5, 0.32, -0.57, TRIM);
+    box(TX1, 5.0, -8.4, 7.9, 5.15, -0.2, TRIM);
+    box(TX1, 5.02, -0.2, 7.9, 5.17, -0.09, METAL, { aux: GALV });
+    slope([TX1, 5.15, -0.2], [7.9, 5.15, -0.2], [7.9, 7.1, -3.6], [TX1, 7.1, -3.6], ROOF);
+
+    // ---- porch clutter: a cracked terracotta pot with dead stems ----
+    cyl([-1.72, 0.22, 0.45], [-1.72, 0.47, 0.45], 0.14, 0.18, 14, METAL, [4, 0]);
+    cyl([-1.72, 0.47, 0.45], [-1.72, 0.5, 0.45], 0.19, 0.19, 14, METAL, [4, 0]);
   }
 
   // ---------------- November vegetation ----------------
@@ -147,8 +455,10 @@
     const uv = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
     for (const i of [0, 1, 2, 0, 2, 3]) V(P[i], n, uv[i][0], uv[i][1], mat, aux);
   }
-  const insideHouse = (x, z) => (x > -2.4 && x < 2.4 && z < 2.98) || (x > -8.6 && x < -2.3 && z < 1.0) || (x > 2.25 && x < 6.3 && z < 0.9);
-  const onPath = (x, z) => (Math.abs(x) < 1.6 && z > 2.9 && z < 14) || (Math.abs(x) < 7.5 && z > 2.6 && z < 3.4);
+  const insideHouse = (x, z) => (x > -2.65 && x < 1.75 && z < 0.1) || (x > -2.4 && x < 1.75 && z < 2.9) || (x > -7.6 && x < -2.55 && z < 3.6)
+    || (x > 1.65 && x < 4.35 && z < 1.7) || (x > 4.25 && x < 7.6 && z < -0.5);
+  const paved = (x, z) => (x > -8 && x < 9 && z > 3.55 && z < 16) || (x > -2.25 && x < 9 && z > 1.6 && z < 3.55) || (x > 4.3 && x < 9 && z > -0.6 && z < 1.6);
+  const gravel = (x, z) => x > -2.6 && x < -2.0 && z > 0 && z < 3.55 && !(x > -2.25 && z > 1.6);
 
   // dormant lawn: tufts of mostly dead, straw-coloured grass with some green left at the base
   function grassTuft(x, z, h, dead) {
@@ -281,36 +591,33 @@
   }
 
   function buildVegetation() {
-    // lawn, unmown since the summer: taller along the house, railing and path edges
-    const lawn = (x, z) => {
-      if (insideHouse(x, z)) return;
-      const edgePath = onPath(x, z);
-      if (edgePath && !(Math.abs(Math.abs(x) - 1.6) < 0.12 || Math.abs(z - 2.6) < 0.08 || Math.abs(z - 3.4) < 0.08)) return;
-      const nearHouse = (z < 3.4 && !onPath(x, z)) || Math.abs(z - 2.43) < 0.35;
-      const h = edgePath ? 0.08 + 0.1 * R() : (nearHouse ? 0.3 + 0.45 * R() : 0.14 + 0.28 * R());
-      grassTuft(x, z, h, 0.72);
-    };
-    for (let i = 0; i < 4500; i++) lawn(-13 + 26 * R(), -2 + 12.5 * R());
-    for (let i = 0; i < 9000; i++) { const sd = R() < 0.5 ? -1 : 1; lawn(sd * (1.55 + 6.5 * R()), 2.4 + 7 * R()); }   // what the camera sees
-    // a few far tufts on the sides
-    for (let i = 0; i < 700; i++) {
-      const x = (R() < 0.5 ? -1 : 1) * (8 + 10 * R()), z = -9 + 9 * R();
-      if (!insideHouse(x, z)) grassTuft(x, z, 0.3 + 0.4 * R(), 0.8);
+    // dormant lawn beyond the paved forecourt
+    const lawn = (x, z, h) => { if (!insideHouse(x, z) && !paved(x, z) && !gravel(x, z)) grassTuft(x, z, h, 0.75); };
+    for (let i = 0; i < 5000; i++) lawn(-16 + 32 * R(), -9 + 26 * R(), 0.15 + 0.35 * R());
+    for (let i = 0; i < 2500; i++) { const sd = R() < 0.5 ? -1 : 1; lawn(sd < 0 ? -8 - 3 * R() : 9 + 3 * R(), -2 + 14 * R(), 0.2 + 0.4 * R()); }
+    // weeds in the paving joints, thicker along the walls and edges where nobody walks
+    for (let i = 0; i < 3800; i++) {
+      const x = -4.5 + 10.5 * R(), z = -0.6 + 10.5 * R();
+      if (!paved(x, z)) continue;
+      const nearWall = Math.exp(-Math.max(0, z - 1.65) * 0.9) + Math.exp(-Math.abs(x + 2.25) * 2.5);
+      if (R() > 0.25 + 0.75 * Math.min(1, nearWall)) continue;
+      const alongX = R() < 0.5, jx = 0.05 + 0.9 * Math.round((x - 0.05) / 0.9), jz = 0.9 * Math.round(z / 0.9);
+      const px = alongX ? x : jx + (R() - 0.5) * 0.02, pz = alongX ? jz + (R() - 0.5) * 0.02 : z;
+      if (paved(px, pz)) grassTuft(px, pz, 0.04 + 0.12 * R() * (0.4 + nearWall), 0.85);
     }
-    // bare hydrangeas each side of the steps, rhododendrons under the bay window
-    hydrangea(-2.05, 2.72, 0.95); hydrangea(2.08, 2.7, 0.85);
-    rhodo(3.35, 1.4, 1.05); rhodo(5.0, 1.35, 0.95); rhodo(6.7, 0.9, 1.3);
-    // sword ferns and dead bracken along the foundations
-    for (const [x, z, s, d] of [[-7.9, 1.35, 0.7, 0], [-6.8, 1.3, 0.55, 1], [-5.9, 1.4, 0.65, 0], [-3.1, 1.35, 0.6, 1], [-2.75, 2.0, 0.5, 0],
-      [-1.75, 3.15, 0.45, 1], [1.8, 3.2, 0.4, 0], [2.6, 1.15, 0.5, 1], [6.5, 1.6, 0.7, 0], [-9.3, 0.4, 0.8, 0], [-10.2, 2.2, 0.75, 1], [7.6, 2.4, 0.7, 1]]) fern(x, z, s, d);
-    // blackberry tangle past the end of the railing
-    bramble(-9.4, 2.4, 14); bramble(8.6, 0.8, 8);
-    // bare big-leaf maple (left, mossy) and red alder (right)
-    bareTree(-12.0, -2.2, 16, 0.42, 1); bareTree(10.6, -3.8, 13, 0.26, 2);
+    // gravel strip along the left wing: dead weeds, a sword fern, dead bracken
+    for (let i = 0; i < 260; i++) { const x = -2.58 + 0.55 * R(), z = 0.05 + 3.45 * R(); if (gravel(x, z)) grassTuft(x, z, 0.12 + 0.3 * R(), 0.8); }
+    fern(-2.42, 0.45, 0.55, 0); fern(-2.45, 3.2, 0.45, 1); fern(-2.5, 1.35, 0.35, 1);
+    // shrubs beside the tower and the right section: rhododendrons, a bare hydrangea
+    rhodo(4.75, 0.55, 1.15); rhodo(6.3, -0.1, 1.3); hydrangea(5.5, 0.9, 0.9);
+    for (const [x, z, s, d] of [[-8.3, 3.2, 0.7, 0], [-8.6, 1.0, 0.75, 1], [7.8, -0.2, 0.7, 1], [-9.5, -1.0, 0.8, 0], [8.4, 1.4, 0.6, 0]]) fern(x, z, s, d);
+    bramble(-9.6, 2.6, 14); bramble(9.4, 0.4, 8);
+    // bare big-leaf maple (left, mossy) and red alder (right), above the roofs
+    bareTree(-9.8, -3.6, 15.5, 0.42, 1); bareTree(8.6, -4.6, 13, 0.26, 2);
     // second-growth Douglas firs behind the house
     for (const [x, z, H] of [[-19, -12, 36], [-11, -15, 41], [-4, -13, 33], [3.5, -16, 44], [9, -12, 31], [15, -14, 38], [22, -10, 30], [-26, -7, 34],
       [-7, -22, 40], [12, -23, 42], [0, -27, 39], [-17, -24, 37], [19, -20, 35], [27, -16, 33], [-30, -15, 36]]) fir(x, z, H, H * (0.12 + 0.12 * R()), H * 0.13, 9);
-    for (const [x, z, H] of [[11.5, 1.5, 6.5], [-14, -1, 7.5], [13.5, -1.5, 9]]) fir(x, z, H, 0.4, H * 0.24, 7);   // young firs / hemlocks
+    for (const [x, z, H] of [[11.5, 1.5, 6.5], [-12.5, 0.5, 7.5], [13.5, -1.5, 9]]) fir(x, z, H, 0.4, H * 0.24, 7);   // young firs / hemlocks
   }
 
   // ---------------- GLSL ----------------
@@ -363,6 +670,12 @@
   // ---- per-group material code; each sets Surf S ----
   const LIB = `
   in vec3 vPos; in vec3 vNor; in vec2 vUv; in vec2 vAux; flat in int vMat;
+  uniform vec3 uCam, uCamF, uFlashPos, uLamp, uAOmin, uAOsize;
+  uniform float uFlash, uSky, uLampI, uFogK;
+  const vec3 LAMP_C = vec3(1.0, 0.60, 0.27);     // high-pressure sodium
+  const vec3 FLASH_C = vec3(1.0, 0.95, 0.88);
+  const vec3 SKY_C = vec3(0.78, 0.82, 0.95);
+  float flashCone(vec3 dir) { float c = dot(dir, uCamF); return mix(0.12, 1.0, smoothstep(0.72, 0.985, c)) * step(0.0, c); }
   struct Surf { vec3 alb; vec3 n; float spec; float gloss; float trans; float occ; float glass; vec3 inside; };
   // perturb a normal by the screen-space gradient of a height field (metres)
   vec3 bumpN(vec3 n, float h) {
@@ -414,7 +727,10 @@
     // remnants of old paint, peeled into curled flakes with cracks between them
     vec2 pq = vec2(p.x + p.z, p.y);
     // paint lets go across the grain first, so what is left survives as ragged strips along it
-    float survive = fbm3(vec2(a.x * 1.3, a.y * 11.0) + 30.0) * 0.6 + fbm3(pq * 1.1 + 8.0) * 0.4 + vn(vec2(a.x * 6.0, a.y * 40.0)) * 0.12 - (0.85 - 0.38 * paintAmt);
+    // large weathered zones (where sun and rain hit) decide how much is left; within them paint lets go
+    // board by board and along the grain, leaving long ragged strips with sharp edges
+    float zone = fbm3(pq * 0.45 + 8.0);
+    float survive = zone * 0.55 + fbm3(vec2(a.x * 0.7, a.y * 4.5) + 30.0) * 0.35 + fbm3(vec2(a.x * 3.0, a.y * 26.0)) * 0.16 - (0.80 - 0.46 * paintAmt);
     float keep = smoothstep(0.0, max(0.012, fwidth(survive) * 1.5), survive);
     float paint = 0.0, edge = 0.0;
     if (keep > 0.0) {
@@ -425,9 +741,9 @@
       paint = keep * (1.0 - 0.85 * crack) * (1.0 - lost);
       edge = keep * (1.0 - smoothstep(0.0, 0.035, survive)) * 0.6;
     }
-    vec3 pc = pcol * (0.62 + 0.4 * fbm3(pq * 5.0)) * (1.0 - 0.55 * mil) * (1.0 - 0.35 * st);
+    vec3 pc = pcol * (0.55 + 0.35 * fbm3(pq * 3.0)) * (1.0 - 0.6 * mil) * (1.0 - 0.45 * st) * (0.85 + 0.15 * zone);
     pc = mix(pc, pc * vec3(0.85, 0.82, 0.7), low);   // yellowed and dirty low down
-    pc = mix(pc, c * 1.6, 0.3);                      // chalked, dirt ground into the paint film
+    pc = mix(pc, c * 1.5, 0.35);                     // chalked, dirt ground into the paint film
     c = mix(c, pc, paint);
     c *= 1.0 - 0.35 * edge;
     h += paint * 0.0004;
@@ -438,113 +754,214 @@
     float e = min(px.x, px.y);
     return 1.0 + 0.25 * (1.0 - smoothstep(0.5, 2.5, e)) - 0.12 * smoothstep(2.5, 6.0, e) * (1.0 - smoothstep(6.0, 14.0, e));
   }
-  float shelter(vec3 p) {   // under the porch roof / deep eaves
-    float porch = step(-2.4, p.x) * step(p.x, 2.4) * step(p.z, 2.5) * step(p.y, 3.5);
-    return clamp(porch * (0.55 + 0.45 * smoothstep(2.3, 0.0, p.z)), 0.0, 1.0);
+  float shelter(vec3 p) {   // under the porch roof (0 open to the rain, 1 fully sheltered)
+    float porch = step(-2.05, p.x) * step(p.x, 1.75) * step(p.z, 2.1) * step(p.y, 3.52);
+    float eave = step(p.x, -2.55) * step(-2.75, p.x) * step(p.y, 2.62) * 0.35;   // narrow eave of the left wing
+    return clamp(porch * (0.5 + 0.5 * smoothstep(2.1, 0.3, p.z)) + eave, 0.0, 1.0);
   }
   `;
-  const PAINT_W = 'vec3(0.29, 0.28, 0.25)';   // old off-white house paint
+  const PAINT_S = 'vec3(0.30, 0.295, 0.27)';    // old white paint on the siding
+  const PAINT_T = 'vec3(0.33, 0.315, 0.275)';    // cream trim paint
+  const PAINT_D = 'vec3(0.055, 0.095, 0.07)';   // dark green door paint
+  const PAINT_B = 'vec3(0.22, 0.29, 0.30)';     // faded "haint blue" porch ceiling
 
   const MAT = [
-    // ---------------- 0: wood ----------------
+    // ---------------- 0: wood (siding, trim, door, sashes, porch floor, ceiling) ----------------
     LIB + WOOD + `
   void material(inout Surf S) {
     vec3 p = vPos; float h = 0.0, wet; float sh = shelter(p);
-    if (vMat == 0) {   // clapboard siding
-      float y = p.y / 0.19, f = fract(y), row = floor(y), along = p.x + p.z;
-      float bl = 2.2 + 1.4 * h2(vec2(row, 3.0)), off = h2(vec2(row, 7.0));
+    vec2 a; float tone = 1.0, pAmt = 0.4, mulA = 1.0, hAdd = 0.0; vec3 pc = ${PAINT_T};
+    S.gloss = 6.0; float specB = 0.012;
+    if (vMat == 0) {   // clapboard siding, 14 cm exposure
+      float y = p.y / 0.14, f = fract(y), row = floor(y), along = p.x + p.z;
+      float bl = 2.0 + 1.6 * h2(vec2(row, 3.0)), off = h2(vec2(row, 7.0));
       float seg = floor(along / bl + off), joint = abs(fract(along / bl + off) - 0.5) * bl;
-      S.alb = wood(vec2(along + seg * 5.3, p.y + seg * 0.37), p, 0.8 + 0.35 * h2(vec2(row, seg)), sh, 0.05 + 0.3 * sh, ${PAINT_W}, h, wet);
+      a = vec2(along + seg * 5.3, p.y + seg * 0.37); tone = 0.8 + 0.35 * h2(vec2(row, seg));
+      pAmt = 0.30 + 0.4 * sh + 0.3 * (h2(vec2(row * 0.37, seg)) - 0.5) + 0.25 * smoothstep(1.2, 0.0, abs(p.y - 6.6)); pc = ${PAINT_S};
       float fw = fwidth(y);
-      // each board is thicker at its butt (bottom); the butt of the board above overhangs this one
-      h += 0.014 * (1.0 - f) * smoothstep(0.0, max(0.04, fw * 2.0), f);
-      S.occ = mix(0.55, 1.0, smoothstep(0.0, max(0.06, fw * 2.0), f)) * mix(1.0, 0.7, smoothstep(0.75, 1.0, f));
-      S.alb *= joint > bl * 0.5 - 0.01 ? 0.45 : 1.0;
-      S.alb *= 1.0 - 0.3 * step(0.9, h2(vec2(row, seg + 11.0))) * (1.0 - f);   // the odd warped board
-      S.alb *= f < 0.035 ? 0.5 : 1.0;
-      S.gloss = 10.0; S.spec = 0.02 + 0.05 * wet;
-    } else if (vMat == 1 || vMat == 11) {   // trim boards, columns, deck sides, steps
+      hAdd = 0.010 * (1.0 - f) * smoothstep(0.0, max(0.04, fw * 2.0), f);
+      S.occ = mix(0.5, 1.0, smoothstep(0.0, max(0.06, fw * 2.0), f)) * mix(1.0, 0.75, smoothstep(0.75, 1.0, f));
+      mulA = (joint > bl * 0.5 - 0.008 ? 0.4 : 1.0) * (1.0 - 0.3 * step(0.9, h2(vec2(row, seg + 11.0))) * (1.0 - f)) * (f < 0.04 ? 0.45 : 1.0);
+      specB = 0.012;
+    } else if (vMat == 1 || vMat == 11 || vMat == 3 || vMat == 9) {   // trim boards and mouldings, window sashes, slats
       float across = vMat == 11 ? p.x + p.z : (abs(vNor.y) > 0.5 ? p.z : p.y);
-      vec2 a = vMat == 11 ? vec2(p.y, across) : vec2(p.x + p.z, across);
-      S.alb = wood(a, p, 1.0, sh, (0.25 + 0.3 * sh) * smoothstep(0.45, 0.9, p.y), ${PAINT_W}, h, wet) * edgeWear(vUv);
-      S.gloss = 12.0; S.spec = 0.02 + 0.06 * wet;
-    } else if (vMat == 8) {   // porch floor and step treads: grey boards, worn path, fallen leaves, grit
-      float b = p.x / 0.12, bi = floor(b), bf = fract(b);
-      S.alb = wood(vec2(p.z + bi * 3.1, p.x), p, 0.75 + 0.3 * h2(vec2(bi, 2.0)), 0.3, 0.0, ${PAINT_W}, h, wet);
-      float fw = fwidth(b);
-      S.alb *= mix(0.25, 1.0, smoothstep(0.03, 0.03 + fw * 1.5 + 0.02, bf) * smoothstep(0.03, 0.03 + fw * 1.5 + 0.02, 1.0 - bf));
-      h += 0.003 * sin(3.14159 * bf);                    // cupped boards
-      float worn = exp(-sq(p.x / 0.6)) * smoothstep(0.0, 1.5, p.z);
+      a = vMat == 11 ? vec2(p.y, across) : vec2(p.x + p.z, across);
+      pAmt = (0.42 + 0.4 * sh) * smoothstep(0.2, 0.7, p.y) + 0.08; if (vMat == 3) pAmt = 0.55;
+      mulA = edgeWear(vUv); specB = 0.014; S.gloss = 7.0;
+    } else if (vMat == 2) {   // door: dark green paint, mostly worn off where hands and feet touch it
+      a = abs(vNor.z) > 0.5 && fwidth(p.y) > 0.0 ? vec2(p.y, p.x * 1.5) : vec2(p.x, p.y);
+      pAmt = 0.65 - 0.4 * smoothstep(0.7, 0.2, p.y); pc = ${PAINT_D}; specB = 0.016; S.gloss = 8.0;
+    } else if (vMat == 8) {   // porch floor and step treads: grey boards running out from the wall
+      float b = p.x / 0.11, bi = floor(b), bf = fract(b), fw = fwidth(b);
+      a = vec2(p.z + bi * 3.1, p.x); tone = 0.75 + 0.3 * h2(vec2(bi, 2.0)); pAmt = 0.15;
+      mulA = mix(0.25, 1.0, smoothstep(0.03, 0.05 + fw * 1.5, bf) * smoothstep(0.03, 0.05 + fw * 1.5, 1.0 - bf));
+      hAdd = 0.003 * sin(3.14159 * bf);
+      specB = 0.015; S.gloss = 8.0;
+    } else {   // 13: beadboard porch ceiling, faded blue paint flaking off
+      float b = p.x / 0.085, bi = floor(b), bf = fract(b), fw = fwidth(b);
+      a = vec2(p.z + bi * 2.3, p.x); pAmt = 0.75; pc = ${PAINT_B};
+      mulA = mix(0.35, 1.0, smoothstep(0.0, 0.06 + fw, bf) * smoothstep(0.0, 0.06 + fw, 1.0 - bf)) * (1.0 - 0.15 * (1.0 - smoothstep(0.0, 0.12, abs(bf - 0.5))));
+      hAdd = -0.002 * (1.0 - smoothstep(0.0, 0.1, abs(bf - 0.5)));
+      S.occ = 0.85;
+    }
+    S.alb = wood(a, p, tone, sh, pAmt, pc, h, wet) * mulA;
+    h += hAdd;
+    S.spec = specB + 0.04 * wet;
+    if (vMat == 8) {   // leaves blown onto the porch, piled against the wall, in the corners and on the step
+      float worn = exp(-sq(p.x / 0.6)) * smoothstep(0.0, 1.4, p.z) * step(0.2, p.y);
       S.alb = mix(S.alb, S.alb * 1.25 + 0.01, worn * 0.4);
-      // leaves blown under the porch, piled against the wall and in corners
       vec3 lc = cell2(p.xz * vec2(5.5, 7.0) + 13.0);
-      float pile = smoothstep(1.3, 0.2, p.z) * 0.6 + smoothstep(1.6, 2.25, abs(p.x)) * 0.5 + (p.y < 0.4 ? 0.45 : 0.0);
+      float pile = smoothstep(0.9, 0.1, p.z) * 0.6 + smoothstep(1.3, 1.95, abs(p.x + 0.15)) * 0.5 + (p.y < 0.15 ? 0.35 : 0.0);
       float leaf = step(1.0 - 0.6 * pile, lc.z) * smoothstep(0.42, 0.28, lc.x);
       vec3 lcol = mix(vec3(0.16, 0.085, 0.03), vec3(0.24, 0.15, 0.05), h2(vec2(lc.z * 97.0, 1.0))) * (0.6 + 0.6 * vn(p.xz * 40.0));
       S.alb = mix(S.alb, lcol, leaf); h += leaf * 0.002;
-      S.gloss = 14.0; S.spec = 0.03;
-    } else {   // 9: railing slats
-      S.alb = wood(vec2(p.y, p.x), p, 0.95, 0.0, 0.25, ${PAINT_W}, h, wet);
-      S.gloss = 10.0; S.spec = 0.02;
     }
     S.n = bumpN(S.n, h);
   }`,
-    // ---------------- 1: door, sash windows, bay window ----------------
-    LIB + WOOD + `
-  // old glass: dark interior with curtains, grime toward the edges, faint waviness
-  void glassy(inout Surf S, vec2 q, vec3 inside) {
-    S.glass = 1.0; S.spec = 1.0; S.gloss = 6000.0;
-    float grime = smoothstep(0.25, 0.5, max(abs(q.x - 0.5), abs(q.y - 0.5))) * 0.6 + 0.4 * fbm3(q * 7.0 + vPos.xy * 3.0);
-    S.alb = vec3(0.05, 0.048, 0.04) * grime;     // dirt film on the glass catches light
-    S.inside = inside;
-    S.n = normalize(S.n + vec3(vn(vPos.xy * 6.0) - 0.5, vn(vPos.xy * 6.0 + 40.0) - 0.5, 0.0) * 0.006);
+    // ---------------- 1: old window glass and the rooms behind it (interior mapping) ----------------
+    LIB + `
+  // a flat silhouette ("card") parallel to the glass at depth z inside the room
+  void cardHit(inout float tb, inout vec3 alb, inout vec3 nrm, vec3 o, vec3 dl, float z, float cover, vec3 c) {
+    float t = z / dl.z;
+    if (cover > 0.5 && t < tb) { tb = t; alb = c; nrm = vec3(0.0, 0.0, -1.0); }
+  }
+  float rect(vec2 p, vec2 a, vec2 b) { return step(a.x, p.x) * step(p.x, b.x) * step(a.y, p.y) * step(p.y, b.y); }
+  vec3 wallpaper(vec2 q, float type) {
+    float stripe = smoothstep(0.3, 0.7, abs(fract(q.x * 6.0) - 0.5) * 2.0);
+    float dam = vn(vec2(fract(q.x * 6.0) * 6.0, q.y * 7.0) + floor(q.x * 6.0) * 3.0);
+    vec3 base = type < 0.5 ? vec3(0.16, 0.12, 0.08) : (type < 1.5 ? vec3(0.07, 0.10, 0.075) : vec3(0.17, 0.13, 0.11));
+    vec3 c = base * (0.8 + 0.25 * stripe + 0.2 * dam);
+    c *= 0.75 + 0.35 * fbm3(q * 1.7);                                       // water stains, fading
+    return c * (1.0 - 0.4 * smoothstep(0.6, 0.85, fbm3(q * 3.0 + 7.0)));     // mould
   }
   void material(inout Surf S) {
-    vec3 p = vPos; vec2 q = vUv; float h = 0.0, wet; float sh = shelter(p);
-    if (vMat == 2) {   // arched door with glass upper half: old dark green paint mostly peeled off
-      S.alb = wood(vec2(p.y, q.x * 1.5), p, 0.75, sh, 0.55, vec3(0.08, 0.13, 0.09), h, wet);
-      if (q.y > 0.07 && q.y < 0.33 && q.x > 0.14 && q.x < 0.86) {
-        float b = min(min(q.y - 0.07, 0.33 - q.y) * 3.0, min(q.x - 0.14, 0.86 - q.x));
-        S.alb *= b < 0.03 ? 0.6 : 0.95; h -= b < 0.03 ? 0.004 : 0.0;
+    int type = int(vAux.x + 0.5); float W = vAux.y;
+    vec3 N = normalize(vNor), Rt = normalize(cross(vec3(0.0, 1.0, 0.0), N));
+    vec3 Vv = normalize(uCam - vPos);
+    vec2 wq = vec2(dot(vPos, Rt), vPos.y);
+    vec2 wav = vec2(vn(wq * 4.0) - 0.5, vn(wq * 4.0 + 40.0) - 0.5);   // old cylinder glass is wavy
+    S.n = normalize(N + (Rt * wav.x + vec3(0.0, 1.0, 0.0) * wav.y) * 0.03);
+    S.glass = 1.0; S.spec = 1.0; S.gloss = 6000.0;
+    // dirt film: heavier in the corners of each pane and in runs from the bottom
+    float grime = 0.35 + 0.65 * fbm3(wq * 6.0 + 3.0) * (0.6 + 0.6 * smoothstep(0.6, 0.0, vUv.y));
+    S.alb = vec3(0.045, 0.043, 0.036) * grime;
+    vec3 d = normalize(-Vv + (Rt * wav.x + vec3(0.0, 1.0, 0.0) * wav.y) * 0.02);
+    vec3 dl = vec3(dot(d, Rt), d.y, max(-dot(d, N), 0.03));
+    vec3 o = vec3(vUv.x, vPos.y, 0.0);
+    float y0 = vPos.y - vUv.y;   // bottom of this window
+    float xl, xr, D, fy, cy;
+    if (type == 0) { xl = -0.9; xr = W + 0.9; D = 6.5; fy = 0.24; cy = 3.7; }          // hall behind the front doors
+    else if (type == 1) { xl = -1.3; xr = W + 2.0; D = 4.4; fy = 0.30; cy = 4.0; }     // library in the tower
+    else if (type == 2) { xl = -1.6; xr = W + 1.4; D = 3.8; fy = 0.40; cy = 2.55; }    // sitting room in the wing
+    else { xl = -1.0; xr = W + 1.0; D = 3.2; fy = y0 - 0.7; cy = fy + 2.6; }           // upstairs rooms
+    float tx = dl.x > 0.0 ? (xr - o.x) / dl.x : (xl - o.x) / min(dl.x, -1e-4);
+    float ty = dl.y > 0.0 ? (cy - o.y) / dl.y : (fy - o.y) / min(dl.y, -1e-4);
+    float tz = D / dl.z;
+    float t = min(tz, min(tx, ty));
+    vec3 hp = o + dl * t, nl, alb;
+    float tpe = float(type);
+    if (t == tz) {           // back wall
+      nl = vec3(0.0, 0.0, -1.0); alb = wallpaper(hp.xy, tpe);
+      if (type == 1 && hp.y < fy + 3.0) {   // floor-to-ceiling bookcases
+        float sy = (hp.y - fy - 0.08) / 0.36, sr = floor(sy), sf = fract(sy);
+        float bx = hp.x / 0.042 + sr * 7.3, bid = floor(bx);
+        float bh = 0.55 + 0.4 * h2(vec2(bid, sr)), gap = step(0.9, h2(vec2(bid * 0.31, sr + 4.0)));
+        vec3 bc = mix(vec3(0.10, 0.03, 0.025), vec3(0.03, 0.06, 0.04), step(0.5, h2(vec2(bid, sr + 9.0))));
+        bc = mix(bc, vec3(0.13, 0.10, 0.06), step(0.75, h2(vec2(bid, sr + 2.0)))) * (0.6 + 0.6 * h2(vec2(bid, sr + 5.0)));
+        bc *= 0.75 + 0.25 * smoothstep(0.0, 0.15, abs(fract(bx) - 0.5));
+        alb = sf < 0.07 ? vec3(0.07, 0.045, 0.03) : (sf - 0.07 < bh * 0.93 && gap < 0.5 ? bc : vec3(0.015, 0.012, 0.01));
+        if (abs(fract(hp.x / 0.95) - 0.5) > 0.47) alb = vec3(0.07, 0.045, 0.03);
+      } else if (type == 0) {   // dark doorway at the end of the hall, a picture on the wall
+        if (abs(hp.x - W * 0.5) < 0.5 && hp.y < fy + 2.2) alb = vec3(0.004);
+        if (rect(hp.xy, vec2(W * 0.5 - 1.3, fy + 1.4), vec2(W * 0.5 - 0.75, fy + 1.9)) > 0.5) alb = vec3(0.09, 0.07, 0.04);
+      } else if (type == 2) {   // a framed print and a fireplace
+        if (rect(hp.xy, vec2(W * 0.5 - 0.35, fy + 1.3), vec2(W * 0.5 + 0.35, fy + 1.8)) > 0.5) alb = vec3(0.12, 0.10, 0.07) * (0.6 + 0.6 * vn(hp.xy * 9.0));
+        if (rect(hp.xy, vec2(W * 0.5 - 0.6, fy), vec2(W * 0.5 + 0.6, fy + 1.05)) > 0.5) alb = rect(hp.xy, vec2(W * 0.5 - 0.35, fy), vec2(W * 0.5 + 0.35, fy + 0.7)) > 0.5 ? vec3(0.008) : vec3(0.10, 0.09, 0.08);
       }
-      float r = 0.36; vec2 c = vec2(0.5, 0.78);
-      bool inArch = (q.y > 0.42 && q.y < 0.78 && abs(q.x - 0.5) < r) || (q.y >= 0.78 && length((q - c) * vec2(1.0, 1.55)) < r);
-      if (inArch) {
-        float gx = abs(fract((q.x - 0.14) / 0.24) - 0.5), gy = abs(fract((q.y - 0.42) / 0.12) - 0.5);
-        if (gx > 0.45 || gy > 0.43) { S.alb *= 1.1; }
-        else {
-          float curtain = 0.5 + 0.5 * sin(q.x * 70.0 + fbm3(q * 9.0) * 4.0);
-          glassy(S, vec2(fract((q.x - 0.14) / 0.24), fract((q.y - 0.42) / 0.12)), vec3(0.012) + vec3(0.07, 0.062, 0.05) * curtain * smoothstep(0.5, 0.95, q.y));
-          return;
-        }
+      if (hp.y < fy + 0.15) alb = vec3(0.04, 0.03, 0.02);
+    } else if (t == tx) {    // side walls: wallpaper over a wooden dado
+      nl = vec3(-sign(dl.x), 0.0, 0.0); alb = wallpaper(vec2(hp.z, hp.y), tpe);
+      if (hp.y < fy + 0.9) alb = vec3(0.06, 0.04, 0.025) * (0.8 + 0.3 * vn(hp.zy * 20.0));
+      if (type == 1 && hp.y < fy + 3.0 && hp.z > 0.8) {   // more books on the side wall
+        float sy = (hp.y - fy - 0.08) / 0.36, sf = fract(sy), bx = hp.z / 0.042 + floor(sy) * 5.1;
+        alb = sf < 0.07 ? vec3(0.07, 0.045, 0.03) : vec3(0.05, 0.03, 0.02) * (0.5 + h2(vec2(floor(bx), floor(sy))));
       }
-      S.n = bumpN(S.n, h); return;
+    } else if (dl.y < 0.0) { // floor: dusty boards, a rug, hall tiles
+      nl = vec3(0.0, 1.0, 0.0);
+      alb = vec3(0.07, 0.045, 0.028) * (0.7 + 0.5 * vn(vec2(hp.x * 0.5, hp.z * 12.0))) * (0.8 + 0.2 * step(0.04, fract(hp.x / 0.11)));
+      if (type == 0) { vec2 tq = floor(hp.xz / 0.25); alb = mod(tq.x + tq.y, 2.0) < 0.5 ? vec3(0.22, 0.20, 0.17) : vec3(0.03, 0.025, 0.02); alb *= 0.6 + 0.4 * fbm3(hp.xz * 3.0); }
+      if (type != 0 && rect(hp.xz, vec2(0.0, 0.7), vec2(W + 0.3, 3.0)) > 0.5) alb = vec3(0.12, 0.04, 0.03) * (0.6 + 0.5 * vn(hp.xz * 14.0)) * (0.7 + 0.3 * step(0.15, min(min(hp.x, W + 0.3 - hp.x), min(hp.z - 0.7, 3.0 - hp.z))));
+    } else {                 // ceiling: stained plaster
+      nl = vec3(0.0, -1.0, 0.0); alb = vec3(0.20, 0.19, 0.17) * (0.6 + 0.5 * fbm3(hp.xz * 1.3));
     }
-    if (vMat == 3) {   // sash window, 2x3 panes
-      float fx = abs(fract(q.x * 2.0) - 0.5), fy = abs(fract(q.y * 3.0) - 0.5);
-      if (q.x < 0.05 || q.x > 0.95 || q.y < 0.04 || q.y > 0.96 || fx > 0.46 || fy > 0.44) {
-        S.alb = wood(vec2(p.x + p.y, p.y + p.x), p, 1.1, sh, 0.5, ${PAINT_W}, h, wet); S.n = bumpN(S.n, h); return;
+    // furniture and fittings as silhouettes at their depths (nearest wins)
+    float tb = t; vec3 ca = alb, cn = nl;
+    if (type == 1) {
+      float zc = 1.7, xc = W * 0.32, tc = zc / dl.z; vec2 q = (o + dl * tc).xy;   // brass chandelier
+      float ch = step(abs(q.x - xc), 0.008) * step(cy - 0.62, q.y)
+        + step(abs(q.x - xc), 0.035) * step(cy - 1.0, q.y) * step(q.y, cy - 0.6)
+        + step(abs(q.y - (cy - 0.86) - 0.05 * sq((q.x - xc) / 0.36)), 0.018) * step(abs(q.x - xc), 0.36)
+        + step(abs(abs(q.x - xc) - 0.34), 0.022) * step(cy - 0.86, q.y) * step(q.y, cy - 0.70)
+        + step(abs(abs(q.x - xc) - 0.17), 0.02) * step(cy - 0.88, q.y) * step(q.y, cy - 0.74);
+      cardHit(tb, ca, cn, o, dl, zc, ch, vec3(0.10, 0.075, 0.04));
+      float zt = 0.75, xt = W - 0.32; tc = zt / dl.z; q = (o + dl * tc).xy;      // side table and lamp with a cloth shade
+      float table = rect(q, vec2(xt - 0.33, fy + 0.70), vec2(xt + 0.33, fy + 0.75)) + step(abs(abs(q.x - xt) - 0.28), 0.022) * step(q.y, fy + 0.70);
+      cardHit(tb, ca, cn, o, dl, zt, table, vec3(0.05, 0.03, 0.018));
+      float lb = step(abs(q.x - xt), 0.03 + 0.05 * sin(clamp((q.y - fy - 0.75) / 0.34, 0.0, 1.0) * 3.14159)) * step(fy + 0.75, q.y) * step(q.y, fy + 1.10);
+      cardHit(tb, ca, cn, o, dl, zt - 0.01, lb, vec3(0.13, 0.10, 0.06));
+      float sf = clamp((q.y - fy - 1.10) / 0.28, 0.0, 1.0), shade = step(abs(q.x - xt), mix(0.21, 0.13, sf)) * step(fy + 1.10, q.y) * step(q.y, fy + 1.38);
+      cardHit(tb, ca, cn, o, dl, zt - 0.02, shade, vec3(0.40, 0.34, 0.24) * (0.85 + 0.15 * sin(q.x * 160.0)));
+      float zw = 1.5, xw = W * 0.72; tc = zw / dl.z; q = (o + dl * tc).xy;      // wingback chair
+      float chair = step(abs(q.x - xw), 0.36) * step(fy + 0.12, q.y) * step(q.y, fy + 1.05 + 0.08 * (1.0 - sq((q.x - xw) / 0.36)));
+      cardHit(tb, ca, cn, o, dl, zw, chair, vec3(0.05, 0.065, 0.045) * (0.7 + 0.4 * vn(q * 30.0)));
+    } else if (type == 0) {
+      float zs = 1.1; float tc = zs / dl.z; vec2 q = (o + dl * tc).xy;            // coat stand with a coat on it
+      float cs = step(abs(q.x - 0.3), 0.02) * step(q.y, fy + 1.85) + step(abs(q.x - 0.36), 0.16 - 0.05 * (q.y - fy - 1.0)) * step(fy + 0.75, q.y) * step(q.y, fy + 1.7);
+      cardHit(tb, ca, cn, o, dl, zs, cs, vec3(0.025, 0.022, 0.02));
+      if (dl.x > 0.0) {   // staircase along the right wall: stringer and balusters
+        float xs = W + 0.35, ts = (xs - o.x) / dl.x; vec3 sp = o + dl * ts;
+        float rise = fy + max(0.0, sp.z - 1.8) * 0.65;
+        float st = step(sp.y, rise) + step(sp.y, rise + 0.92) * step(rise + 0.1, sp.y) * step(0.7, fract(sp.z / 0.14)) + step(abs(sp.y - rise - 0.92), 0.03);
+        if (st > 0.5 && ts < tb && sp.z > 1.8) { tb = ts; ca = vec3(0.06, 0.035, 0.02); cn = vec3(-1.0, 0.0, 0.0); }
       }
-      float curtain = smoothstep(0.35, 0.0, abs(q.x - 0.18)) + smoothstep(0.3, 0.0, abs(q.x - 0.84));
-      glassy(S, vec2(fract(q.x * 2.0), fract(q.y * 3.0)), vec3(0.006) + vec3(0.06, 0.055, 0.045) * curtain * (0.6 + 0.4 * sin(q.x * 90.0)));
-      // one cracked pane
-      if (q.x > 0.5 && q.y < 0.33 && vPos.z > 0.5) { float cr = abs(vn(q * 30.0) - 0.5); S.alb += vec3(0.25) * (1.0 - smoothstep(0.0, 0.02, cr)) * step(0.4, q.y * 3.0); }
-      return;
+    } else if (type == 2) {
+      float zw = 1.4, xw = W * 0.4, tc = zw / dl.z; vec2 q = (o + dl * tc).xy;
+      float chair = step(abs(q.x - xw), 0.38) * step(fy + 0.1, q.y) * step(q.y, fy + 0.95 + 0.06 * (1.0 - sq((q.x - xw) / 0.38)));
+      cardHit(tb, ca, cn, o, dl, zw, chair, vec3(0.09, 0.06, 0.04) * (0.7 + 0.4 * vn(q * 25.0)));
+    } else {
+      float zw = 1.8, tc = zw / dl.z; vec2 q = (o + dl * tc).xy;                  // a wardrobe in the dark
+      cardHit(tb, ca, cn, o, dl, zw, rect(q, vec2(W * 0.5, fy), vec2(W * 0.5 + 1.0, fy + 2.0)), vec3(0.04, 0.025, 0.015));
     }
-    // 4: tall twin gothic-arch bay window
-    float lx = fract(q.x * 2.0), side = step(0.5, q.x), top = 0.80;
-    bool inL = (q.y < top && abs(lx - 0.5) < 0.42) || (q.y >= top && length((vec2(lx, q.y) - vec2(0.5, top)) * vec2(1.0, 2.2)) < 0.42);
-    float gx = abs(fract(lx * 2.0) - 0.5), gy = abs(fract(q.y * 6.0) - 0.5);
-    if (!inL || q.y < 0.03 || (gx > 0.47 && q.y < top) || gy > 0.46) {
-      S.alb = wood(vec2(p.y, p.x + p.z), p, 1.05, sh, 0.45, ${PAINT_W}, h, wet); S.n = bumpN(S.n, h); return;
+    // light reaching the room: the LED flash (through the glass twice), sky light through the windows, the sodium lamp
+    float dc = length(uCam - vPos), dist = dc + tb;
+    float Ef = uFlash / (dist * dist) * flashCone(d) * max(dot(cn, -dl), 0.0) * 0.72;
+    vec3 E = FLASH_C * Ef + SKY_C * uSky * 0.3 * (0.35 + 0.65 * exp(-tb * 0.5)) + LAMP_C * uLampI * 0.002 * exp(-tb * 0.6);
+    vec3 room = ca / 3.14159 * E;
+    // curtains right behind the glass, lit from outside
+    float Eg = uFlash / (dc * dc) * flashCone(d) * max(dot(N, Vv), 0.0) * 0.88;
+    vec3 Eo = FLASH_C * Eg + SKY_C * uSky * 1.2 + LAMP_C * uLampI / dot(uLamp - vPos, uLamp - vPos) * max(dot(N, normalize(uLamp - vPos)), 0.0) * 0.6;
+    vec2 cq = (o + dl * (0.03 / dl.z)).xy;
+    float cov = 0.0; vec3 calb = vec3(0.0);
+    if (type == 0) {        // lace, gathered into soft folds
+      float fold = 0.5 + 0.5 * sin(cq.x * 48.0 + 2.0 * vn(cq * 3.0));
+      vec3 lc = cell2(cq * vec2(55.0, 40.0));
+      float lace = 0.55 + 0.35 * smoothstep(0.2, 0.45, lc.y - lc.x) + 0.2 * fold;
+      cov = clamp(lace, 0.0, 0.92); calb = vec3(0.24, 0.22, 0.17) * (0.75 + 0.35 * fold) * (0.8 + 0.3 * fbm3(cq * 5.0));
+    } else if (type == 1 || type == 2) {   // heavy drapes at the sides, a half-drawn roller blind in the wing
+      float sideW = (type == 1 ? 0.2 : 0.3) + 0.08 * sin(cq.y * 3.0) - 0.07 * exp(-sq((cq.y - fy - 1.1) / 0.2));
+      float dr = step(cq.x, sideW) + step(W - sideW, cq.x);
+      float fold = 0.5 + 0.5 * sin(cq.x * 70.0 + vn(cq * 4.0) * 3.0);
+      if (dr > 0.5) { cov = 1.0; calb = (type == 1 ? vec3(0.075, 0.03, 0.026) : vec3(0.09, 0.07, 0.045)) * (0.5 + 0.6 * fold); }
+      if (type == 2 && cq.y > y0 + 0.72) { cov = 0.97; calb = vec3(0.17, 0.14, 0.085) * (0.75 + 0.3 * fbm3(cq * 6.0)) * (1.0 - 0.4 * smoothstep(0.02, 0.0, abs(cq.y - y0 - 0.74))); }
+    } else {                // upstairs: roller blinds pulled most of the way down, one torn
+      float lim = y0 + 0.25 + 0.6 * h2(floor(vPos.xz * 1.3) + 3.0);
+      float torn = step(0.82, h2(floor(vPos.xz * 1.3))) * step(0.55, vn(cq * vec2(6.0, 2.0)));
+      if (cq.y > lim && torn < 0.5) { cov = 0.96; calb = vec3(0.17, 0.14, 0.085) * (0.7 + 0.35 * fbm3(cq * 4.0)) * (1.0 - 0.3 * smoothstep(0.03, 0.0, abs(cq.y - lim))); }
     }
-    vec3 inside = vec3(0.008, 0.009, 0.01);
-    float shelf = step(0.82, fract(q.y * 9.0)), books = step(0.4, h2(vec2(floor(q.x * 60.0), floor(q.y * 9.0))));
-    inside += vec3(0.045, 0.032, 0.022) * books * (1.0 - shelf) * step(q.y, 0.7) * (0.5 + h2(vec2(floor(q.x * 60.0), 3.0)));
-    vec2 lp = vec2((q.x - 0.80) * 1.2, q.y - 0.27);
-    if (side > 0.5 && lp.y > 0.0 && lp.y < 0.07 && abs(lp.x) < 0.06 - lp.y * 0.45) inside = vec3(0.13, 0.105, 0.075);
-    glassy(S, vec2(fract(lx * 2.0), fract(q.y * 6.0)), inside);
+    vec3 curtain = calb / 3.14159 * Eo;
+    S.inside = mix(room, curtain, cov);
   }`,
+
     // ---------------- 2: ground and path ----------------
     LIB + `
   // fallen big-leaf maple leaves: large, lobed, brown to ochre, darker and glossy when wet
@@ -584,30 +1001,65 @@
       float lf = leafLitter(xz, dens, lc, lh);
       S.alb = mix(c, lc, lf); h += lh + (g - 0.5) * 0.01;
       S.spec = 0.02 + 0.08 * (mud + lf * 0.5); S.gloss = 30.0;
-    } else {           // concrete slabs: stained, cracked, moss in the joints, leaves stuck to them
-      vec2 s = xz / vec2(1.4, 1.1);
-      float j = min(abs(fract(s.x) - 0.5), abs(fract(s.y) - 0.5));
-      vec3 c = mix(vec3(0.075, 0.075, 0.07), vec3(0.17, 0.165, 0.155), fbm3(xz * 1.6)) * (0.8 + 0.35 * vn(xz * 14.0));
-      c *= 0.82 + 0.25 * h2(floor(s));
-      c = mix(c, vec3(0.05, 0.05, 0.045), smoothstep(0.5, 0.7, fbm3(xz * 2.6 + 11.0)) * 0.7);   // damp, dark patches
-      vec3 lc0 = cell2(xz * 9.0 + 3.0);
-      float lich = step(0.9, lc0.z) * smoothstep(0.3, 0.15, lc0.x);
-      c = mix(c, vec3(0.22, 0.22, 0.17), lich * 0.6);
+    } else if (vMat == 6) {   // old concrete paving slabs, 0.9 m: stained, cracked, slightly sunken, moss and dead grass in the joints
+      vec2 s = (xz - vec2(0.05, 0.0)) / 0.9, si = floor(s), sf = fract(s);
       float fw = fwidth(s.x) + fwidth(s.y);
-      float joint = smoothstep(0.475 - fw, 0.49, j);
-      c = mix(c, vec3(0.03, 0.05, 0.02), joint * 0.9);
-      float crack = (1.0 - smoothstep(0.0, 0.012 + fw * 0.3, abs(vn(xz * 3.0 + floor(s) * 7.0) - 0.5))) * step(0.5, h2(floor(s) + 4.0));
-      c = mix(c, vec3(0.02), crack * 0.8); h -= crack * 0.003 + joint * 0.004;
-      float edge = smoothstep(1.2, 1.6, abs(p.x)) * step(2.9, p.z) + 0.3;
-      vec3 lc; float lh; float lf = leafLitter(xz, 0.06 + 0.2 * edge, lc, lh);
+      float j = min(min(sf.x, 1.0 - sf.x), min(sf.y, 1.0 - sf.y));
+      vec3 c = mix(vec3(0.07, 0.07, 0.065), vec3(0.16, 0.155, 0.145), fbm3(xz * 1.4 + si * 3.0)) * (0.8 + 0.3 * vn(xz * 16.0));
+      c *= 0.8 + 0.3 * h2(si);
+      float damp = smoothstep(0.48, 0.72, fbm3(xz * 1.1 + 11.0) + 0.25 * smoothstep(0.12, 0.0, j));
+      c = mix(c, c * 0.5, damp);
+      vec3 lc0 = cell2(xz * 8.0 + 3.0);
+      c = mix(c, vec3(0.20, 0.20, 0.16), step(0.88, lc0.z) * smoothstep(0.3, 0.12, lc0.x) * 0.55);   // lichen spots
+      float edge = 1.0 - smoothstep(0.0, 0.035 + fw, j);                                              // chipped arrises
+      float joint = 1.0 - smoothstep(0.008, 0.012 + fw * 0.8, j);
+      float moss = smoothstep(0.08, 0.0, j) * smoothstep(0.35, 0.65, fbm3(xz * 3.0 + 4.0));
+      c = mix(c, c * 0.65, edge * 0.6);
+      c = mix(c, vec3(0.03, 0.045, 0.018) * (0.7 + 0.6 * vn(xz * 40.0)), max(joint * 0.9, moss * 0.7));
+      float crack = (1.0 - smoothstep(0.0, 0.01 + fw * 0.3, abs(vn(xz * 2.5 + si * 7.0) - 0.5))) * step(0.55, h2(si + 4.0));
+      c = mix(c, vec3(0.02), crack * 0.8);
+      h += -0.006 * edge - 0.008 * joint - 0.003 * crack + (h2(si + 9.0) - 0.5) * 0.0 + (sf.x - 0.5) * 0.004 * (h2(si + 1.0) - 0.5) + (sf.y - 0.5) * 0.004 * (h2(si + 2.0) - 0.5);
+      float wall = smoothstep(1.2, 0.0, p.z - 1.6) + smoothstep(0.6, 0.0, abs(p.x + 2.25));
+      vec3 lc; float lh; float lf = leafLitter(xz, 0.10 + 0.3 * wall + 0.08 * moss, lc, lh);
       S.alb = mix(c, lc, lf); h += lh;
-      S.spec = 0.05 + 0.1 * smoothstep(0.5, 0.7, fbm3(xz * 2.6 + 11.0)); S.gloss = 40.0;
+      S.spec = 0.04 + 0.16 * damp * (1.0 - lf); S.gloss = 45.0 + 60.0 * damp;
+    } else {                  // gravel: small rounded stones, dirt and needles between them
+      vec3 g = cell2(xz * 38.0);
+      float st = smoothstep(0.42, 0.18, g.x);
+      vec3 c = mix(vec3(0.05, 0.045, 0.035), mix(vec3(0.13, 0.12, 0.11), vec3(0.2, 0.17, 0.13), g.z) * (0.7 + 0.5 * h2(vec2(g.z * 91.0, 2.0))), st);
+      c = mix(c, vec3(0.03, 0.045, 0.02), smoothstep(0.55, 0.75, fbm3(xz * 2.0)) * (1.0 - st) * 0.8);
+      h += st * 0.006;
+      vec3 lc; float lh; float lf = leafLitter(xz, 0.25, lc, lh);
+      S.alb = mix(c, lc, lf); h += lh; S.spec = 0.05; S.gloss = 30.0;
     }
     S.n = bumpN(S.n, h);
   }`,
     // ---------------- 3: roof ----------------
     LIB + `
+  void metal(inout Surf S) {
+    vec3 p = vPos; float k = vAux.x, h = 0.0;
+    float r = fbm3(vec2(p.x + p.z, p.y) * 6.0), streak = smoothstep(0.55, 0.8, vn(vec2((p.x + p.z) * 25.0, p.y * 1.5)));
+    if (k < 0.5) {        // galvanised gutters and downspouts: dull, patchy, rust runs, moss in the gutters
+      S.alb = mix(vec3(0.13, 0.13, 0.125), vec3(0.20, 0.20, 0.19), r);
+      S.alb = mix(S.alb, vec3(0.09, 0.045, 0.02), clamp(streak * 0.6 + smoothstep(0.65, 0.8, r) * 0.7, 0.0, 1.0));
+      S.alb *= 1.0 - 0.4 * smoothstep(0.5, 0.0, p.y);
+      S.spec = 0.07; S.gloss = 14.0; h = r * 0.001;
+    } else if (k < 1.5) { // tarnished brass
+      S.alb = mix(vec3(0.06, 0.045, 0.025), vec3(0.12, 0.085, 0.04), r) * (1.0 - 0.5 * streak); S.spec = 0.035; S.gloss = 12.0;
+    } else if (k < 2.5) { // black iron, flaking
+      S.alb = mix(vec3(0.02, 0.02, 0.02), vec3(0.07, 0.04, 0.025), smoothstep(0.55, 0.75, r)); S.spec = 0.035; S.gloss = 16.0;
+    } else if (k < 3.5) { // frosted lantern glass, dirty, dead insects
+      S.alb = vec3(0.07, 0.065, 0.05) * (0.6 + 0.5 * r) * (1.0 - 0.6 * step(0.86, vn(p.xy * 60.0))); S.spec = 0.06; S.gloss = 40.0;
+    } else {              // terracotta, white efflorescence and moss
+      S.alb = mix(vec3(0.16, 0.07, 0.04), vec3(0.24, 0.12, 0.07), r);
+      S.alb = mix(S.alb, vec3(0.26, 0.25, 0.22), smoothstep(0.6, 0.8, vn(vec2(atan(p.x + 1.72, p.z - 0.45) * 3.0, p.y * 20.0))) * 0.6);
+      S.alb = mix(S.alb, vec3(0.03, 0.05, 0.02), smoothstep(0.35, 0.25, p.y) * 0.6);
+      S.spec = 0.03; S.gloss = 10.0;
+    }
+    S.n = bumpN(S.n, h);
+  }
   void material(inout Surf S) {
+    if (vMat == 17) { metal(S); return; }
     // old asphalt shingles, curling at the edges, thick with moss (Coast Range rain), needles and leaf debris
     vec3 p = vPos; float along = p.x + p.z * 0.0001;
     float rowF = p.y / 0.12, row = floor(rowF), f = fract(rowF);
@@ -632,7 +1084,7 @@
     LIB + `
   void material(inout Surf S) {
     float dead = vAux.y, r = h2(vec2(vAux.x * 997.0, 3.0));
-    vec3 straw = mix(vec3(0.20, 0.16, 0.085), vec3(0.30, 0.25, 0.14), r);
+    vec3 straw = mix(vec3(0.15, 0.12, 0.07), vec3(0.24, 0.20, 0.115), r);
     vec3 green = mix(vec3(0.05, 0.075, 0.03), vec3(0.08, 0.11, 0.04), r);
     float y = vUv.y;
     vec3 c = dead > 0.5 ? mix(green * 0.8, straw, smoothstep(0.0, 0.35, y)) : mix(green * 0.6, green, y);
@@ -700,15 +1152,10 @@
 
   // lighting, shared by all material groups
   const MAIN = `
-  uniform vec3 uCam, uCamF, uFlashPos, uLamp, uAOmin, uAOsize;
-  uniform float uFlash, uSky, uLampI, uFogK;
   uniform highp sampler3D uAO;
   uniform highp sampler2DShadow uShadow;
   uniform mat4 uLampVP;
   layout(location=0) out vec4 oCol;
-  const vec3 LAMP_C = vec3(1.0, 0.60, 0.27);     // high-pressure sodium
-  const vec3 FLASH_C = vec3(1.0, 0.95, 0.88);
-  const vec3 SKY_C = vec3(0.78, 0.82, 0.95);
   float lampShadow(vec3 p) {
     vec4 c = uLampVP * vec4(p, 1.0); vec3 q = c.xyz / c.w * 0.5 + 0.5;
     if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0 || c.w < 0.0) return 1.0;
@@ -719,7 +1166,6 @@
     }
     return s / 5.0;
   }
-  float flashCone(vec3 dir) { float c = dot(dir, uCamF); return mix(0.12, 1.0, smoothstep(0.72, 0.985, c)) * step(0.0, c); }
   void main() {
     vec3 n = normalize(vNor);
     vec3 V = uCam - vPos; float dist = length(V); V /= dist;
@@ -763,7 +1209,7 @@
       vec3 r = reflect(-V, n);
       float skyR = smoothstep(-0.05, 0.4, r.y) * 0.9;
       L += SKY_C * uSky * skyR * (0.04 + 0.96 * pow(1.0 - nv, 5.0)) * 0.6;
-      L += S.inside * (Eamb * 0.15 + FLASH_C * Ef * 0.08 + LAMP_C * El * 0.1) * (1.0 - fr);
+      L += S.inside * (1.0 - (0.04 + 0.96 * pow(1.0 - nv, 5.0))) * 0.85;   // the room (and curtains) seen through dirty glass
     }
     // mist: extinction, sky airlight, and LED flash back-scatter between the lens and the surface
     float T = exp(-uFogK * dist);
@@ -914,7 +1360,7 @@
   }
 
   // scene constants
-  const LAMP = [-11.0, 5.5, 9.0];
+  const LAMP = [9.0, 5.8, 10.0];
   const AO_MIN = [-17, -0.3, -10], AO_SIZE = [30, 12.6, 22], AO_RES = [150, 63, 110];
   let BUILT = false, AO_DATA = null;
 
@@ -966,7 +1412,7 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     const smF = fboTex(gl, null, smT);
-    const LAMP_VP = mul(perspective(62 * Math.PI / 180, 1, 2, 70), lookAt(LAMP, [-1.5, 2.5, -1.5], UP));
+    const LAMP_VP = mul(perspective(72 * Math.PI / 180, 1, 2, 70), lookAt(LAMP, [-0.8, 2.6, 0.0], UP));
     gl.viewport(0, 0, SM, SM); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS); gl.clearDepth(1); gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1.5, 3.0);
     gl.useProgram(pre.p); setNoise(pre); drawGeo(pre, LAMP_VP, true);
