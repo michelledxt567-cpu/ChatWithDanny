@@ -9,6 +9,24 @@ Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 | [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.8 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
 | [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 30.3 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
 
+## Chinese subtitle version (`output/中文版/`)
+
+| File | Length |
+|---|---|
+| [`output/中文版/video1_unlock_and_chat_zh.mp4`](output/中文版/video1_unlock_and_chat_zh.mp4) | 34.8 s |
+| [`output/中文版/video2_old_house_no_service_zh.mp4`](output/中文版/video2_old_house_no_service_zh.mp4) | 30.3 s |
+
+These videos have the same content and timing as the English ones. The only difference is the chat message text. Each bubble first shows the original English. Shortly after it is fully on screen (0.7 s in video 1, 0.45 s in video 2), it decodes from left to right into Chinese. A short band of scrambled glyphs runs in front, like the translated NPC subtitles in Cyberpunk 2077. Bubbles that appear together decode one after another from top to bottom. After decoding, each bubble eases to the size of the Chinese text. The chat stays anchored while this happens, so the framing does not jump.
+
+Only message text is translated. The iOS/WhatsApp UI stays English: day labels, "last seen", times, keyboard, the text being typed, and the lock screen. The translations and the effect are in `src/translate.js`, which is turned on by adding `?zh` to the scene URL. Chinese glyphs come from a 21 KB subset of Noto Sans SC (`src/fonts/`, SIL Open Font License).
+
+```sh
+cd src
+node render.mjs ../work/zf1 60 --scene 'scene.html?zh' --workers 7
+node render.mjs ../work/zf2 60 --scene 'scene2.html?zh' --workers 7
+# audio + encode exactly as for the English versions (the timeline is identical)
+```
+
 ## Video 1: unlock and chat
 
 | Time | Action |

@@ -6,6 +6,7 @@
 <script src="phone.js"></script>
 <script src="house3d.js"></script>
 <script src="photos.js"></script>
+<script src="translate.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
@@ -323,7 +324,7 @@ function bubbleHTML(m, first, last, tkHTML) {
   const color = m.from === 'me' ? '#D9FDD3' : '#FFFFFF';
   const spW = m.from === 'me' ? (m.time.length > 7 ? 78 : 72) : (m.time.length > 7 ? 56 : 50);
   const meta = `<span class="meta">${m.time}${m.from === 'me' ? `<span class="tk">${tkHTML}</span>` : ''}</span>`;
-  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${emojify(m.text)}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
+  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${ZH.wrap(m.text, emojify(m.text))}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
 }
 
 function buildChat() {
@@ -564,7 +565,7 @@ function makePhoto() {
 // ---------- layout ----------
 const L = {};
 function measure() {
-  L.H = $('content').offsetHeight;
+  L.H = $('content').offsetHeight - $('phWrap').offsetHeight - $('txWrap').offsetHeight;   // without tonight's messages
   L.phH = $('phInner').offsetHeight;
   L.txH = $('txInner').offsetHeight;
 }
@@ -594,6 +595,14 @@ let lastLayer = '';
 // ---------- one frame ----------
 window.render = function (t) {
   // ===== chat (inside #app) =====
+  // Chinese version: decode bubbles, then re-measure (the chat stays pinned to the input bar as bubbles shrink)
+  if (ZH.on) {
+    ZH.apply(t);
+    const lc = $('launchclip'), hidden = lc.style.display === 'none';   // layout reads 0 while the app is hidden
+    if (hidden) lc.style.display = 'block';
+    measure();
+    if (hidden) lc.style.display = 'none';
+  }
   const kbP = ease(t, V.kb[0], V.kb[1], easeOut4);
   $('kb').style.top = (SCREEN_H - KB_H * kbP) + 'px';
   $('kb').style.display = kbP > 0 ? 'block' : 'none';
@@ -775,7 +784,15 @@ window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px
   $('waStrip').innerHTML = `<div class="st"><img src="${PHOTO}"></div>` + ROLL.map((s) => `<div class="st"><img src="${s}"></div>`).join('');
   for (const id of ['prevImg', 'phImg']) $(id).src = PHOTO;
   await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+  await ZH.prepare($('content'), emojify);
   measure();
+  // Chinese version: bubbles decode once the chat is on screen (not while the WhatsApp camera covers it)
+  const sample = (t) => {
+    if (!((t >= V.launch[1] && t < V.waCamIn[0]) || t >= V.prevOut[1])) return null;
+    window.render(t);
+    return { y: parseFloat($('content').style.transform.slice(11)), top: 104, bottom: parseFloat($('bar').style.top) };
+  };
+  for (let pass = 0; pass < 2; pass++) window.ZH_SCHEDULE = ZH.schedule(sample, V.launch[1], END, { hold: 0.45, stagger: 0.08, hidden: [[V.waCamIn[0], V.prevOut[1] + 0.3]] });
   window.SOUNDS = soundCues();
   window.render(0);
   return true;

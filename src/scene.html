@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Video 1: unlock phone, read chat with Danny, send message</title>
 <script src="phone.js"></script>
+<script src="translate.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 443px; height: 960px; overflow: hidden; background: #000; }
@@ -234,7 +235,7 @@ function bubbleHTML(m, first, last, tkHTML) {
   const color = m.from === 'me' ? '#D9FDD3' : '#FFFFFF';
   const spW = m.from === 'me' ? (m.time.length > 7 ? 78 : 72) : (m.time.length > 7 ? 56 : 50);
   const meta = `<span class="meta">${m.time}${m.from === 'me' ? `<span class="tk">${tkHTML}</span>` : ''}</span>`;
-  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${emojify(m.text)}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
+  return `<div class="b${last ? ' tailed' : ''}" style="color:#111b21">${ZH.wrap(m.text, emojify(m.text))}<span class="sp" style="width:${spW}px"></span>${meta}${last ? `<span style="color:${color}">${TAIL}</span>` : ''}</div>`;
 }
 
 function buildChat() {
@@ -401,7 +402,7 @@ function suggestions(text) {
 const L = {};
 function measure() {
   const content = $('content');
-  L.H = content.offsetHeight;
+  L.H = content.offsetHeight - $('newWrap').offsetHeight;   // chat height without the message sent at the end
   const off = (id) => { const e = $(id); return { top: e.offsetTop, h: e.offsetHeight }; };
   L.pMon = off('pMon'); L.thumb = off('mThumb'); L.yeah = off('mYeah');
   const newInner = $('newInner'); L.newH = newInner.offsetHeight;
@@ -456,6 +457,15 @@ function scrollAt(t) {
 // ---------- render one frame ----------
 let lastLayer = '';
 function chatRender(t) {
+  // Chinese version: decode bubbles, then re-measure so the scroll anchors follow the new bubble sizes
+  if (ZH.on) {
+    ZH.apply(t);
+    const lc = $('launchclip'), hidden = lc.style.display === 'none';   // layout reads 0 while the app is hidden
+    if (hidden) lc.style.display = 'block';
+    measure(); buildScroll();
+    if (hidden) lc.style.display = 'none';
+  }
+
   // status bar clock
   $('clock').textContent = t < TIMES.minute ? '6:40' : '6:41';
 
@@ -624,8 +634,17 @@ function soundCues() {
   return c.filter((x) => x.t < window.DURATION).sort((a, b) => a.t - b.t);
 }
 
-window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px LockClock')]).then(() => {
-  measure(); buildScroll(); window.SOUNDS = soundCues(); window.render(0); return true;
+window.ready = Promise.all([document.fonts.ready, document.fonts.load('600 108px LockClock')]).then(async () => {
+  await ZH.prepare($('content'), emojify);
+  measure(); buildScroll();
+  // Chinese version: find when each bubble is first fully on screen (chat time), between the header and the input bar
+  const sample = (ct) => {
+    chatRender(ct);
+    return { y: parseFloat($('content').style.transform.slice(11)), top: 104, bottom: parseFloat($('bar').style.top) };
+  };
+  // second pass lays the chat out with the first pass's decode times applied
+  for (let pass = 0; pass < 2; pass++) window.ZH_SCHEDULE = ZH.schedule(sample, TIMES.chatStart, TIMES.chatEnd, { hold: 0.7, stagger: 0.14 });
+  window.SOUNDS = soundCues(); window.render(0); return true;
 });
 </script>
 </body>
