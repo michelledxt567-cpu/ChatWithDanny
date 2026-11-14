@@ -31,7 +31,7 @@
     'You alive?': '你还活着吗？',
     'Hey, you haven’t been in class either': '喂，你也没来上课',
     'Everything okay?': '你没事吧？',
-    'I’m coming over to check on you.': '我过去看看你。',
+    'I’m coming over to check on you.': '那我过来找你了',
     'I’m here.': '我到了。',
   };
 
