@@ -51,7 +51,7 @@ The chat content is the same as in the first version. The typing was sped up to 
 | 4.3 s | Flash is turned on ("FLASH ON"). |
 | 4.9 s | The signal goes to **no bars, 3G disappears**. |
 | 5.6–6.0 s | The shutter is pressed. A pre-flash fires, then the main flash lights up the porch. The thumbnail slot, an empty grey square until now (the lock-screen camera can't show the photo library), shows the new photo. |
-| 7.2–9.3 s | Swipe up back to the lock screen (now showing "No Service"). Face ID unlocks the phone, then swipe up to the home screen. The clock changes to 8:24. |
+| 7.2–9.3 s | Swipe up back to the lock screen (now showing "No Service"). Face ID unlocks the phone, then swipe up to the home screen. The weather widget shows **Vernonia** (36°), a small timber town in the Coast Range about an hour from Portland, while video 1 at home shows Portland. The clock changes to 8:24. |
 | 10.5 s | WhatsApp opens on the Danny chat, which ends with 6:41 PM "I’m coming over to check on you." (single ✓). |
 | 12.9–15.9 s | The in-chat camera opens. The user picks the new photo from the strip, next to older camera-roll items (a payment screenshot, a döner kebab plate, a white samoyed, a beach, a sunset); the preview shows Danny as recipient, and they tap send. The preview screen is up for about 1.5 s. |
 | 17.4–20.1 s | The user types `Im here.` (autocorrect gives "I’m here.") and sends it. |
