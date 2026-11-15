@@ -69,7 +69,7 @@ const EV = {
   wake: [2.20, 2.50],          // wrist raised as the hand goes to the door handle (latch at 2.21, door at 2.29)
   slam: 4.75,                  // door shut
   tap: 4.88, launch: [4.95, 5.30],   // tap the compass complication -> Compass app
-  turn: [5.20, 6.05],          // turn from the car toward the house
+  turn: [5.92, 7.05],          // after two steps forward along the car, round the bonnet and turn toward the house
   steps: [5.40, 5.73, 6.09, 6.52, 6.96, 7.43, 7.84, 8.16, 8.54, 8.82],
   stop: 8.85,
   sleep: [9.05, 9.30],         // wrist lowered, display sleeps
@@ -149,11 +149,11 @@ for (let a = 30; a < 360; a += 30) {
 
 // ---- heading over time (file time A) ----
 function heading(A) {
-  // the compass reading follows the body turn with a little lag and a small overshoot
+  // a walking turn round the front of the car: gradual, spread over about three steps, settling with a slight wobble
   const x = lin(A, EV.turn[0], EV.turn[1]);
   const s = x * x * (3 - 2 * x);
   let h = H0 + (H1 - H0) * s;
-  if (A > EV.turn[1]) h += 4.5 * Math.sin((A - EV.turn[1]) * 7.5) * Math.exp(-(A - EV.turn[1]) * 3.2);
+  if (A > EV.turn[1]) h += 2.0 * Math.sin((A - EV.turn[1]) * 6.0) * Math.exp(-(A - EV.turn[1]) * 3.0);
   // standing by the car: tiny hand jitter
   h += 0.8 * Math.sin(A * 3.1) + 0.5 * Math.sin(A * 7.3 + 1);
   // walking: the wrist swings with each step, alternating sides

@@ -68,8 +68,9 @@ The chat content is the same as in the first version. The typing was sped up to 
 | 2.21–2.29 s (door latch, door opens) | 0.05–0.35 s | Wrist raised, the display wakes to the Modular face: **SAT 14**, **8:23**, heart rate **96 BPM**, activity rings, 36° weather, compass complication showing **SW**. |
 | 4.75 s (door shut) | 2.60 s | Door slams. |
 | 4.88–5.30 s | 2.73–3.15 s | The compass complication is tapped and the Compass app zooms open, heading 228° SW. |
-| 5.20–6.05 s | 3.05–3.90 s | He turns from the car toward the house; the dial swings round to **347° N**, with a little overshoot. |
-| 5.40–8.82 s (footsteps) | 3.25–6.67 s | Walking north; the dial sways a few degrees with each step. |
+| 5.40–5.90 s (first two footsteps) | 3.25–3.75 s | He walks forward along the car; the heading stays at about 228° SW. |
+| 5.92–7.05 s | 3.77–4.90 s | Rounding the front of the car, he turns gradually over about three steps to **347° N** (toward the house). |
+| 7.05–8.82 s (footsteps) | 4.90–6.67 s | Walking north toward the house; the dial sways a few degrees with each step. |
 | 8.85 s | 6.70 s | He stops; the heading settles at 347–348°. |
 | 9.05–9.30 s | 6.90–7.15 s | Wrist lowered, the display goes dark. The clip ends black at 7.23 s, and video 2 starts from black. |
 
