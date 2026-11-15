@@ -1,0 +1,202 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Watch clip: getting out of the car at 8:23 PM, compass toward the house</title>
+<style>
+  @font-face { font-family: "WatchFont"; font-weight: 400; src: url("file:///inner_container/usr/share/fonts/google-noto/NotoSans-SemiCondensed.ttf"); }
+  @font-face { font-family: "WatchFont"; font-weight: 500; src: url("file:///inner_container/usr/share/fonts/google-noto/NotoSans-SemiCondensedMedium.ttf"); }
+  @font-face { font-family: "WatchFont"; font-weight: 600; src: url("file:///inner_container/usr/share/fonts/google-noto/NotoSans-SemiCondensedSemiBold.ttf"); }
+  @font-face { font-family: "WatchFont"; font-weight: 700; src: url("file:///inner_container/usr/share/fonts/google-noto/NotoSans-SemiCondensedBold.ttf"); }
+  html, body { margin: 0; width: 443px; height: 960px; background: #000; overflow: hidden; }
+  body { font-family: "WatchFont", "Noto Sans", sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  /* Apple Watch Series 10 46 mm display: 208 x 248 pt (416 x 496 px), scaled to the video width */
+  #disp { position: absolute; left: 0; width: 208px; height: 248px; transform-origin: 0 0; overflow: hidden;
+          border-radius: 42px; background: #000; }
+  .layer { position: absolute; inset: 0; transform-origin: 0 0; }
+  .abs { position: absolute; white-space: nowrap; }
+  #dim { position: absolute; inset: 0; background: #000; z-index: 10; }
+</style></head>
+<body>
+<div id="disp">
+  <!-- ===== Modular watch face ===== -->
+  <div id="face" class="layer">
+    <div class="abs" style="left:15px; top:12px; font-size:16px; font-weight:600; letter-spacing:0.2px">
+      <span style="color:#FF9F0A">SAT</span> <span>14</span></div>
+    <div class="abs" style="right:15px; top:2px; font-size:33px; font-weight:500; letter-spacing:-0.5px">8:23</div>
+
+    <!-- large complication: heart rate -->
+    <div class="abs" style="left:10px; top:50px; width:188px; height:100px; border-radius:16px; background:#151515"></div>
+    <svg class="abs" style="left:20px; top:61px" width="14" height="13" viewBox="0 0 24 22">
+      <path d="M12 21.3l-1.5-1.3C5.1 15.1 1.5 11.9 1.5 7.9 1.5 4.6 4.1 2 7.4 2c1.8 0 3.6.9 4.6 2.3C13 2.9 14.8 2 16.6 2c3.3 0 5.9 2.6 5.9 5.9 0 4-3.6 7.2-9 12.1L12 21.3z" fill="#FF375F"/></svg>
+    <div class="abs" style="left:39px; top:57px; font-size:13px; font-weight:600; color:#FF375F; letter-spacing:0.4px">HEART RATE</div>
+    <div class="abs" style="left:20px; top:72px; font-size:40px; font-weight:500; letter-spacing:-0.5px"><span id="hrv">96</span><span style="font-size:17px; font-weight:600; color:#FF375F; margin-left:4px">BPM</span></div>
+    <div class="abs" style="left:21px; top:124px; font-size:12px; font-weight:500; color:#8E8E93; letter-spacing:0.2px">64 RESTING · NOW</div>
+    <svg class="abs" style="left:132px; top:84px" width="56" height="34" viewBox="0 0 56 34" id="hrChart"></svg>
+
+    <!-- bottom row: activity, weather, compass -->
+    <svg class="abs" style="left:13px; top:166px" width="54" height="54" viewBox="0 0 54 54" id="rings"></svg>
+    <div class="abs" style="left:77px; top:166px; width:54px; height:54px; border-radius:27px; background:#151515"></div>
+    <svg class="abs" style="left:92px; top:173px" width="24" height="16" viewBox="0 0 24 16">
+      <path d="M6.5 15.5h11a4.5 4.5 0 0 0 .6-8.96A6 6 0 0 0 6.6 5.5 5 5 0 0 0 6.5 15.5z" fill="#D1D1D6"/></svg>
+    <div class="abs" style="left:77px; top:189px; width:54px; text-align:center; font-size:16px; font-weight:600">36°</div>
+    <div id="cmpComp" class="abs" style="left:141px; top:166px; width:54px; height:54px">
+      <svg width="54" height="54" viewBox="0 0 54 54" id="cmpSmall"></svg>
+    </div>
+  </div>
+
+  <!-- ===== Compass app ===== -->
+  <div id="comp" class="layer" style="opacity:0">
+    <div class="abs" style="right:16px; top:6px; font-size:16px; font-weight:600">8:23</div>
+    <div class="abs" style="left:18px; top:7px; font-size:13px; font-weight:600; color:#8E8E93">640 FT</div>
+    <svg class="abs" style="left:0; top:0" width="208" height="248" viewBox="0 0 208 248">
+      <g id="dial"></g>
+      <!-- fixed heading marker at the top of the dial -->
+      <path d="M104 34 L99 25 L109 25 Z" fill="#fff"/>
+      <rect x="103" y="37" width="2" height="15" rx="1" fill="#fff"/>
+    </svg>
+    <div class="abs" style="left:0; width:208px; top:105px; text-align:center; font-size:34px; font-weight:500; letter-spacing:-0.5px" id="hdg">228°</div>
+    <div class="abs" style="left:0; width:208px; top:147px; text-align:center; font-size:15px; font-weight:600; color:#D1D1D6" id="hdgDir">SW</div>
+    <div class="abs" style="left:0; width:208px; top:228px; text-align:center; font-size:10px; font-weight:500; color:#8E8E93; letter-spacing:0.3px">45°51′N  123°11′W</div>
+  </div>
+  <div id="dim"></div>
+</div>
+
+<script>
+// Video timeline t = audio time - A0. The user's sound file "Sounds SIMULATOR ZN.WAV" (9.38 s) is
+// trimmed to start just before the car door opens. Event times below are the measured onsets in the
+// sound file (seconds, file time), matching the user's timeline 2:10 / 4:26 / 5:22 / 8:29 (s:frames @30fps).
+const A0 = 2.15, A_END = 9.381;
+const EV = {
+  wake: [2.20, 2.50],          // wrist raised as the hand goes to the door handle (latch at 2.21, door at 2.29)
+  slam: 4.75,                  // door shut
+  tap: 4.88, launch: [4.95, 5.30],   // tap the compass complication -> Compass app
+  turn: [5.20, 6.05],          // turn from the car toward the house
+  steps: [5.40, 5.73, 6.09, 6.52, 6.96, 7.43, 7.84, 8.16, 8.54, 8.82],
+  stop: 8.85,
+  sleep: [9.05, 9.30],         // wrist lowered, display sleeps
+};
+const H0 = 228, H1 = 347;      // heading: beside the car (SW) -> toward the house (N)
+window.DURATION = A_END - A0;
+window.SOUNDS = [];
+
+const S = 443 / 208, disp = document.getElementById('disp');
+disp.style.transform = `scale(${S})`;
+disp.style.top = ((960 - 248 * S) / 2) + 'px';
+const $ = (id) => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const lin = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = (t, a, b) => { const x = lin(t, a, b); return x * x * (3 - 2 * x); };
+const easeOut = (t, a, b) => { const x = lin(t, a, b); return 1 - Math.pow(1 - x, 3); };
+const dirName = (h) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(((h % 360) + 360) % 360 / 45) % 8];
+
+// ---- heart-rate mini chart (today's readings) ----
+(function () {
+  const g = $('hrChart');
+  const v = [62, 66, 71, 64, 88, 79, 70, 67, 74, 92, 81, 96];
+  v.forEach((b, i) => {
+    const x = 3 + i * 4.6, top = 32 - (b - 55) * 0.62, bot = top + 3 + (i % 3) * 1.5;
+    el('line', { x1: x, x2: x, y1: top, y2: Math.min(32, bot), stroke: i === v.length - 1 ? '#FF375F' : '#5A2430', 'stroke-width': 2.6, 'stroke-linecap': 'round' }, g);
+  });
+})();
+
+// ---- activity rings ----
+(function () {
+  const g = $('rings');
+  el('circle', { cx: 27, cy: 27, r: 27, fill: '#151515' }, g);
+  [[22, '#FA114F', '#3A0716', 0.74], [16.5, '#92E82A', '#1F3509', 0.40], [11, '#1EEAEF', '#063638', 0.83]].forEach(([r, c, bg, p]) => {
+    el('circle', { cx: 27, cy: 27, r, fill: 'none', stroke: bg, 'stroke-width': 4.6 }, g);
+    const L = 2 * Math.PI * r;
+    el('circle', { cx: 27, cy: 27, r, fill: 'none', stroke: c, 'stroke-width': 4.6, 'stroke-linecap': 'round',
+      'stroke-dasharray': `${L * p} ${L}`, transform: 'rotate(-90 27 27)' }, g);
+  });
+})();
+
+// ---- compass complication (small, on the face) ----
+const cmpSmall = $('cmpSmall');
+el('circle', { cx: 27, cy: 27, r: 27, fill: '#151515' }, cmpSmall);
+const smallRing = el('g', {}, cmpSmall);
+for (let a = 0; a < 360; a += 30) {
+  const r = a * Math.PI / 180;
+  el('line', { x1: 27 + 22 * Math.sin(r), y1: 27 - 22 * Math.cos(r), x2: 27 + 19 * Math.sin(r), y2: 27 - 19 * Math.cos(r), stroke: '#636366', 'stroke-width': 1.2, 'stroke-linecap': 'round' }, smallRing);
+}
+const smallN = el('path', { d: 'M27 3 L23.5 9.5 L30.5 9.5 Z', fill: '#FF453A' }, smallRing);
+const smallTxt = el('text', { x: 27, y: 33, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 700, fill: '#fff', 'font-family': 'WatchFont' }, cmpSmall);
+smallTxt.textContent = dirName(H0);
+
+// ---- compass dial ----
+const CX = 104, CY = 134, R = 88;
+const dial = $('dial');
+for (let a = 0; a < 360; a += 3) {
+  const r = a * Math.PI / 180, major = a % 30 === 0, mid = a % 15 === 0;
+  const len = major ? 10 : mid ? 7 : 4.5;
+  el('line', { x1: CX + R * Math.sin(r), y1: CY - R * Math.cos(r), x2: CX + (R - len) * Math.sin(r), y2: CY - (R - len) * Math.cos(r),
+    stroke: major ? '#fff' : mid ? '#AEAEB2' : '#636366', 'stroke-width': major ? 1.6 : 1, 'stroke-linecap': 'round' }, dial);
+}
+el('path', { d: `M${CX} ${CY - R - 1} L${CX - 4.5} ${CY - R + 8} L${CX + 4.5} ${CY - R + 8} Z`, fill: '#FF453A' }, dial);
+const upright = [];
+for (let a = 30; a < 360; a += 30) {
+  if (a % 90 === 0) continue;
+  const r = a * Math.PI / 180, rr = R - 19;
+  const t = el('text', { x: CX + rr * Math.sin(r), y: CY - rr * Math.cos(r) + 3.5, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 500, fill: '#8E8E93', 'font-family': 'WatchFont' }, dial);
+  t.textContent = String(a); upright.push([t, CX + rr * Math.sin(r), CY - rr * Math.cos(r)]);
+}
+[['N', 0, '#FF453A'], ['E', 90, '#fff'], ['S', 180, '#fff'], ['W', 270, '#fff']].forEach(([L, a, c]) => {
+  const r = a * Math.PI / 180, rr = R - 21;
+  const t = el('text', { x: CX + rr * Math.sin(r), y: CY - rr * Math.cos(r) + 5.5, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 700, fill: c, 'font-family': 'WatchFont' }, dial);
+  t.textContent = L; upright.push([t, CX + rr * Math.sin(r), CY - rr * Math.cos(r)]);
+});
+
+// ---- heading over time (file time A) ----
+function heading(A) {
+  // the compass reading follows the body turn with a little lag and a small overshoot
+  const x = lin(A, EV.turn[0], EV.turn[1]);
+  const s = x * x * (3 - 2 * x);
+  let h = H0 + (H1 - H0) * s;
+  if (A > EV.turn[1]) h += 4.5 * Math.sin((A - EV.turn[1]) * 7.5) * Math.exp(-(A - EV.turn[1]) * 3.2);
+  // standing by the car: tiny hand jitter
+  h += 0.8 * Math.sin(A * 3.1) + 0.5 * Math.sin(A * 7.3 + 1);
+  // walking: the wrist swings with each step, alternating sides
+  EV.steps.forEach((ts, i) => {
+    const d = A - ts;
+    if (d > -0.05 && d < 0.6) h += (i % 2 ? 2.4 : -2.4) * Math.exp(-Math.pow((d - 0.12) / 0.14, 2));
+  });
+  // slow drift while walking, fading out once he stops
+  const walk = ease(A, EV.steps[0], EV.steps[0] + 0.4) * (1 - ease(A, EV.stop, EV.stop + 0.4));
+  h += walk * 1.6 * Math.sin((A - 5.4) * 1.7);
+  return h;
+}
+
+function render(t) {
+  const A = t + A0;
+  // display brightness: black -> on when the wrist comes up, off again when it drops
+  const on = easeOut(A, EV.wake[0], EV.wake[1]) * (1 - ease(A, EV.sleep[0], EV.sleep[1]));
+  $('dim').style.opacity = String(1 - on);
+  // watch face: slight zoom-in on wake, then zoom out of the way when the Compass app launches
+  const wk = easeOut(A, EV.wake[0], EV.wake[1] + 0.1);
+  const lf = ease(A, EV.launch[0], EV.launch[1]);
+  const fScale = (0.94 + 0.06 * wk) * (1 + 0.5 * lf);
+  const ox = 168, oy = 193;   // compass complication centre
+  $('face').style.transform = `translate(${ox}px,${oy}px) scale(${fScale}) translate(${-ox}px,${-oy}px)`;
+  $('face').style.opacity = String(1 - lin(A, EV.launch[0], EV.launch[0] + 0.12));
+  // pressed state on the complication
+  $('cmpComp').style.opacity = A >= EV.tap && A < EV.tap + 0.12 ? '0.55' : '1';
+  // Compass app grows out of the complication
+  const cs = 0.26 + 0.74 * easeOut(A, EV.launch[0], EV.launch[1]);
+  const cx = ox + (104 - ox) * easeOut(A, EV.launch[0], EV.launch[1]), cy = oy + (124 - oy) * easeOut(A, EV.launch[0], EV.launch[1]);
+  $('comp').style.transform = `translate(${cx}px,${cy}px) scale(${cs}) translate(-104px,-124px)`;
+  $('comp').style.opacity = String(lin(A, EV.launch[0] + 0.02, EV.launch[0] + 0.16));
+
+  const h = heading(A);
+  const hn = ((h % 360) + 360) % 360;
+  dial.setAttribute('transform', `rotate(${-h} ${CX} ${CY})`);
+  for (const [tx, x, y] of upright) tx.setAttribute('transform', `rotate(${h} ${x} ${y})`);
+  $('hdg').textContent = Math.round(hn) % 360 + '°';
+  $('hdgDir').textContent = dirName(hn);
+  smallRing.setAttribute('transform', `rotate(${-h} 27 27)`);
+  smallTxt.textContent = dirName(hn);
+}
+window.render = render;
+window.ready = document.fonts.ready.then(() => Promise.all([...document.fonts].map((f) => f.load()))).then(() => { render(0); });
+</script>
+</body></html>

@@ -1,12 +1,13 @@
 # ChatWithDanny
 
-Two simulated iPhone screen videos about **Danny**, a friend who has gone silent. Both use an English iOS UI. They are shot as if you are looking at the protagonist's phone, with no screen-recording UI.
+Two simulated iPhone screen videos (plus a short Apple Watch clip that leads into video 2) about **Danny**, a friend who has gone silent. Both use an English iOS UI. They are shot as if you are looking at the protagonist's phone, with no screen-recording UI.
 
 Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 
 | File | Length | What it shows |
 |---|---|---|
 | [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.8 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
+| [`output/video2_intro_apple_watch.mp4`](output/video2_intro_apple_watch.mp4) | 7.2 s | Apple Watch screen, played right before video 2: getting out of the car, the watch face, then the Compass app as the protagonist turns and walks toward the house. Uses the user's own sound file. |
 | [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 30.3 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
 
 ## Chinese subtitle version (`output/中文版/`)
@@ -58,6 +59,22 @@ The chat content is the same as in the first version. The typing was sped up to 
 | ~23.7 s | The photo upload fails: red **!** and **Retry**. |
 | ~26.2 s | "I’m here." fails with a red **!**. Danny's status stays `last seen Monday at 11:52 AM`. |
 
+## Apple Watch clip (before video 2)
+
+`src/scene_watch.html` simulates the screen of an Apple Watch Series 10 (46 mm, 208×248 pt), scaled to the full 886 px width and centred on black in the same 886×1920 frame as the phone videos, so the two clips can be joined directly. The sound is the user's file `Sounds SIMULATOR ZN.WAV`, trimmed to start at **2.15 s** (just before the car door opens) and resampled to 48 kHz. Event times were measured from the sound file. In the clip below, file time = clip time + 2.15 s.
+
+| Sound file | Clip | What happens |
+|---|---|---|
+| 2.21–2.29 s (door latch, door opens) | 0.05–0.35 s | Wrist raised, the display wakes to the Modular face: **SAT 14**, **8:23**, heart rate **96 BPM**, activity rings, 36° weather, compass complication showing **SW**. |
+| 4.75 s (door shut) | 2.60 s | Door slams. |
+| 4.88–5.30 s | 2.73–3.15 s | The compass complication is tapped and the Compass app zooms open, heading 228° SW. |
+| 5.20–6.05 s | 3.05–3.90 s | He turns from the car toward the house; the dial swings round to **347° N**, with a little overshoot. |
+| 5.40–8.82 s (footsteps) | 3.25–6.67 s | Walking north; the dial sways a few degrees with each step. |
+| 8.85 s | 6.70 s | He stops; the heading settles at 347–348°. |
+| 9.05–9.30 s | 6.90–7.15 s | Wrist lowered, the display goes dark. The clip ends black at 7.23 s, and video 2 starts from black. |
+
+The watch shows 8:23 throughout, matching the 8:23 PM lock screen at the start of video 2.
+
 ## Audio
 
 There are no sample libraries available offline, so every sound is synthesized in `src/audio.mjs`:
@@ -79,6 +96,10 @@ node encode.mjs ../work/frames1 ../output/video1_unlock_and_chat.mp4 ../work/aud
 node render.mjs ../work/frames2 60 --scene scene2.html --workers 7
 node audio.mjs ../work/frames2/meta.json ../work/audio2.wav outdoor
 node encode.mjs ../work/frames2 ../output/video2_old_house_no_service.mp4 ../work/audio2.wav
+# Apple Watch clip (uses the user's sound file, trimmed at 2.15 s)
+node wavtrim.mjs '../Sounds SIMULATOR ZN.WAV' ../work/watch_audio.wav 2.15
+node render.mjs ../work/fw 60 --scene scene_watch.html --workers 7
+node encode.mjs ../work/fw ../output/video2_intro_apple_watch.mp4 ../work/watch_audio.wav
 # optional playback check
 node verify.mjs ../output/video2_old_house_no_service.mp4 ../work/check 1,5.95,30
 ```
@@ -86,5 +107,6 @@ node verify.mjs ../output/video2_old_house_no_service.mp4 ../work/check 1,5.95,3
 - `src/phone.js` has the shared iOS parts: status bar, lock screen, home screen, and app launch.
 - `src/scene.html` holds video 1 (`I` = intro timings, `MSGS`/`TIMES` = chat).
 - `src/scene2.html` holds video 2 (`V` = timeline).
+- `src/scene_watch.html` holds the Apple Watch clip (`EV` = timeline in sound-file seconds, `A0` = trim point).
 - `src/photos.js` paints the older camera-roll photos procedurally (no network, so no stock photos were available).
 - Each scene's `soundCues()` lists its sound effects.
