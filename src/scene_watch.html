@@ -83,13 +83,14 @@
 
 <script>
 // Video timeline t = audio time - A0. The user's sound file "Sounds SIMULATOR ZN.WAV" (9.38 s) is
-// trimmed to start just before the car door opens. Event times below are the measured onsets in the
+// trimmed to start about 0.3 s before the wrist comes up (the seat belt sounds at 0.25-1.0 s are cut). Event times below are the measured onsets in the
 // sound file (seconds, file time), matching the user's timeline 2:10 / 4:26 / 5:22 / 8:29 (s:frames @30fps).
-const A0 = 2.15, A_END = 9.381;
+const A0 = 1.25, A_END = 9.381;
 const EV = {
-  wake: [2.20, 2.50],          // wrist raised as the hand goes to the door handle (latch at 2.21, door at 2.29)
-  slam: 4.75,                  // door shut
-  tap: 4.88, launch: [4.95, 5.30],   // tap the compass complication -> Compass app
+  wake: [1.58, 1.88],          // wrist raised ~0.6 s before the door opens (handle 2.18, door opens 2.28)
+  land: 2.79,                  // first foot on the ground outside
+  tap: 2.97, launch: [3.03, 3.38],   // right after: tap the compass complication -> Compass app
+  slam: 4.75,                  // door shut (the arm pushing the door jolts the reading)
   turn: [5.92, 7.05],          // after two steps forward along the car, round the bonnet and turn toward the house
   steps: [5.40, 5.73, 6.09, 6.52, 6.96, 7.43, 7.84, 8.16, 8.54, 8.82],
   stop: 8.85,
@@ -177,6 +178,9 @@ function heading(A) {
   const s = x * x * (3 - 2 * x);
   let h = H0 + (H1 - H0) * s;
   if (A > EV.turn[1]) h += 2.0 * Math.sin((A - EV.turn[1]) * 6.0) * Math.exp(-(A - EV.turn[1]) * 3.0);
+  // pushing the door shut jolts the wrist
+  const ds = A - EV.slam;
+  if (ds > -0.15 && ds < 1.0) h += -3.0 * Math.sin(Math.max(ds + 0.15, 0) * 11) * Math.exp(-Math.max(ds + 0.15, 0) * 4.5);
   // standing by the car: tiny hand jitter
   h += 0.8 * Math.sin(A * 3.1) + 0.5 * Math.sin(A * 7.3 + 1);
   // walking: the wrist swings with each step, alternating sides

@@ -7,7 +7,7 @@ Both videos are 886×1920, 60 fps, H.264, with stereo Opus audio.
 | File | Length | What it shows |
 |---|---|---|
 | [`output/video1_unlock_and_chat.mp4`](output/video1_unlock_and_chat.mp4) | 34.8 s | Unlock the phone, open WhatsApp, read back from Monday, type "I’m coming over to check on you." |
-| [`output/video2_intro_apple_watch.mp4`](output/video2_intro_apple_watch.mp4) | 7.2 s | Apple Watch screen, played right before video 2: getting out of the car, the watch face, then the Compass app as the protagonist turns and walks toward the house. Uses the user's own sound file. |
+| [`output/video2_intro_apple_watch.mp4`](output/video2_intro_apple_watch.mp4) | 8.1 s | Apple Watch screen, played right before video 2: getting out of the car, the watch face, then the Compass app as the protagonist turns and walks toward the house. Uses the user's own sound file. |
 | [`output/video2_old_house_no_service.mp4`](output/video2_old_house_no_service.mp4) | 30.3 s | 8:23 PM outside Danny's dad's old wooden house: flash photo, then WhatsApp. The signal drops from 3G to No Service, and both messages fail. |
 
 ## Chinese subtitle version (`output/中文版/`)
@@ -61,18 +61,20 @@ The chat content is the same as in the first version. The typing was sped up to 
 
 ## Apple Watch clip (before video 2)
 
-`src/scene_watch.html` simulates an Apple Watch Series 10 (46 mm, display 208×248 pt) in a silver aluminium case with the black glass border, Digital Crown and side button. The watch is about 790 px wide and centred on black in the same 886×1920 frame as the phone videos, so the two clips can be joined directly. The sound is the user's file `Sounds SIMULATOR ZN.WAV`, trimmed to start at **2.15 s** (just before the car door opens) and resampled to 48 kHz. Event times were measured from the sound file. In the clip below, file time = clip time + 2.15 s.
+`src/scene_watch.html` simulates an Apple Watch Series 10 (46 mm, display 208×248 pt) in a silver aluminium case with the black glass border, Digital Crown and side button. The watch is about 790 px wide and centred on black in the same 886×1920 frame as the phone videos, so the two clips can be joined directly. The sound is the user's file `Sounds SIMULATOR ZN.WAV`, trimmed to start at **1.25 s** (after the seat-belt sounds, about 0.3 s before the wrist comes up) and resampled to 48 kHz. Event times were measured from the sound file. In the clip below, file time = clip time + 1.25 s.
 
 | Sound file | Clip | What happens |
 |---|---|---|
-| 2.21–2.29 s (door latch, door opens) | 0.05–0.35 s | Wrist raised, the display wakes to the Modular face: **SAT 14**, **8:23**, heart rate **96 BPM**, activity rings, 36° weather, compass complication showing **SW**. |
-| 4.75 s (door shut) | 2.60 s | Door slams. |
-| 4.88–5.30 s | 2.73–3.15 s | The compass complication is tapped and the Compass app zooms open, heading 228° SW. |
-| 5.40–5.90 s (first two footsteps) | 3.25–3.75 s | He walks forward along the car; the heading stays at about 228° SW. |
-| 5.92–7.05 s | 3.77–4.90 s | Rounding the front of the car, he turns gradually over about three steps to **347° N** (toward the house). |
-| 7.05–8.82 s (footsteps) | 4.90–6.67 s | Walking north toward the house; the dial sways a few degrees with each step. |
-| 8.85 s | 6.70 s | He stops; the heading settles at 347–348°. |
-| 9.05–9.30 s | 6.90–7.15 s | Wrist lowered, the display goes dark. The clip ends black at 7.23 s, and video 2 starts from black. |
+| 1.58–1.88 s | 0.33–0.63 s | Wrist raised about 0.6 s before the door opens. The display wakes to the Modular face: **SAT 14**, **8:23**, heart rate **96 BPM**, activity rings, 36° weather, compass complication showing **SW**. |
+| 2.18–2.29 s (door handle, door opens) | 0.93–1.04 s | The car door opens. |
+| 2.79 s (light footstep) | 1.54 s | His first foot lands on the ground outside. |
+| 2.97–3.38 s | 1.72–2.13 s | Right after, the compass complication is tapped and the Compass app zooms open, heading about 228° SW. |
+| 4.75 s (door shut) | 3.50 s | He pushes the door shut; the reading jolts by a few degrees. |
+| 5.40–5.90 s (first two footsteps) | 4.15–4.65 s | He walks forward along the car; the heading stays at about 228° SW. |
+| 5.92–7.05 s | 4.67–5.80 s | Rounding the front of the car, he turns gradually over about three steps to **347° N** (toward the house). |
+| 7.05–8.82 s (footsteps) | 5.80–7.57 s | Walking north toward the house; the dial sways a few degrees with each step. |
+| 8.85 s | 7.60 s | He stops; the heading settles at 347–348°. |
+| 9.05–9.30 s | 7.80–8.05 s | Wrist lowered, the display goes dark. The clip ends at 8.13 s on the dark watch, and video 2 starts from black. |
 
 The watch shows 8:23 throughout, matching the 8:23 PM lock screen at the start of video 2.
 
@@ -97,8 +99,8 @@ node encode.mjs ../work/frames1 ../output/video1_unlock_and_chat.mp4 ../work/aud
 node render.mjs ../work/frames2 60 --scene scene2.html --workers 7
 node audio.mjs ../work/frames2/meta.json ../work/audio2.wav outdoor
 node encode.mjs ../work/frames2 ../output/video2_old_house_no_service.mp4 ../work/audio2.wav
-# Apple Watch clip (uses the user's sound file, trimmed at 2.15 s)
-node wavtrim.mjs '../Sounds SIMULATOR ZN.WAV' ../work/watch_audio.wav 2.15
+# Apple Watch clip (uses the user's sound file, trimmed at 1.25 s)
+node wavtrim.mjs '../Sounds SIMULATOR ZN.WAV' ../work/watch_audio.wav 1.25
 node render.mjs ../work/fw 60 --scene scene_watch.html --workers 7
 node encode.mjs ../work/fw ../output/video2_intro_apple_watch.mp4 ../work/watch_audio.wav
 # optional playback check
