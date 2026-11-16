@@ -61,7 +61,7 @@ The chat content is the same as in the first version. The typing was sped up to 
 
 ## Apple Watch clip (before video 2)
 
-`src/scene_watch.html` simulates the screen of an Apple Watch Series 10 (46 mm, 208×248 pt), scaled to the full 886 px width and centred on black in the same 886×1920 frame as the phone videos, so the two clips can be joined directly. The sound is the user's file `Sounds SIMULATOR ZN.WAV`, trimmed to start at **2.15 s** (just before the car door opens) and resampled to 48 kHz. Event times were measured from the sound file. In the clip below, file time = clip time + 2.15 s.
+`src/scene_watch.html` simulates an Apple Watch Series 10 (46 mm, display 208×248 pt) in a silver aluminium case with the black glass border, Digital Crown and side button. The watch is about 790 px wide and centred on black in the same 886×1920 frame as the phone videos, so the two clips can be joined directly. The sound is the user's file `Sounds SIMULATOR ZN.WAV`, trimmed to start at **2.15 s** (just before the car door opens) and resampled to 48 kHz. Event times were measured from the sound file. In the clip below, file time = clip time + 2.15 s.
 
 | Sound file | Clip | What happens |
 |---|---|---|

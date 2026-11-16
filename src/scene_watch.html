@@ -9,13 +9,32 @@
   html, body { margin: 0; width: 443px; height: 960px; background: #000; overflow: hidden; }
   body { font-family: "WatchFont", "Noto Sans", sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
   /* Apple Watch Series 10 46 mm display: 208 x 248 pt (416 x 496 px), scaled to the video width */
-  #disp { position: absolute; left: 0; width: 208px; height: 248px; transform-origin: 0 0; overflow: hidden;
+  /* silver aluminium case (46 mm: about 18 pt of black glass border + case rim around the display), crown and side button */
+  #watch { position: absolute; left: 0; top: 0; width: 244px; height: 284px; transform-origin: 0 0; }
+  #case { position: absolute; inset: 0; border-radius: 62px;
+          background: linear-gradient(150deg, #d9dbde 0%, #b4b7bb 22%, #8a8d92 50%, #a9acb0 74%, #cfd1d4 100%);
+          box-shadow: inset 0 0 0 0.6px rgba(255,255,255,.55), inset 1.5px 2px 2px rgba(255,255,255,.35), inset -1.5px -2px 3px rgba(0,0,0,.35); }
+  #glass { position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px; border-radius: 57px; background: #030303;
+           box-shadow: 0 0 0 0.7px rgba(40,40,42,.9), inset 0 0 0 0.6px rgba(255,255,255,.07); }
+  #glare { position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px; border-radius: 57px; z-index: 20; pointer-events: none;
+           background: linear-gradient(160deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 28%); }
+  #crown { position: absolute; left: 241px; top: 64px; width: 8px; height: 36px; border-radius: 2px 3.5px 3.5px 2px;
+           background: repeating-linear-gradient(180deg, #c3c5c9 0 1.1px, #85888d 1.1px 1.8px),
+                       linear-gradient(90deg, #8a8d92, #d4d6d9);
+           background-blend-mode: multiply; box-shadow: inset -1px 0 1px rgba(0,0,0,.35); }
+  #crownNeck { position: absolute; left: 238.5px; top: 70px; width: 4px; height: 24px; background: linear-gradient(90deg, #6f7277, #a7aaae); }
+  #sideBtn { position: absolute; left: 241.5px; top: 128px; width: 3.4px; height: 50px; border-radius: 1px 2px 2px 1px;
+             background: linear-gradient(90deg, #8d9095, #c9cbce); box-shadow: inset -0.6px 0 0.6px rgba(0,0,0,.3); }
+  #disp { position: absolute; left: 18px; top: 18px; width: 208px; height: 248px; overflow: hidden;
           border-radius: 42px; background: #000; }
   .layer { position: absolute; inset: 0; transform-origin: 0 0; }
   .abs { position: absolute; white-space: nowrap; }
   #dim { position: absolute; inset: 0; background: #000; z-index: 10; }
 </style></head>
 <body>
+<div id="watch">
+<div id="crownNeck"></div><div id="crown"></div><div id="sideBtn"></div>
+<div id="case"></div><div id="glass"></div>
 <div id="disp">
   <!-- ===== Modular watch face ===== -->
   <div id="face" class="layer">
@@ -59,6 +78,8 @@
   </div>
   <div id="dim"></div>
 </div>
+<div id="glare"></div>
+</div>
 
 <script>
 // Video timeline t = audio time - A0. The user's sound file "Sounds SIMULATOR ZN.WAV" (9.38 s) is
@@ -78,9 +99,11 @@ const H0 = 228, H1 = 347;      // heading: beside the car (SW) -> toward the hou
 window.DURATION = A_END - A0;
 window.SOUNDS = [];
 
-const S = 443 / 208, disp = document.getElementById('disp');
-disp.style.transform = `scale(${S})`;
-disp.style.top = ((960 - 248 * S) / 2) + 'px';
+// case 244 x 284 pt plus the crown: scaled to leave a margin on both sides of the 443 pt-wide frame
+const S = 395 / 244, watch = document.getElementById('watch');
+watch.style.transform = `scale(${S})`;
+watch.style.left = ((443 - 244 * S) / 2 - 3) + 'px';
+watch.style.top = ((960 - 284 * S) / 2) + 'px';
 const $ = (id) => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
