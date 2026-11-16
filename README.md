@@ -76,7 +76,7 @@ The chat content is the same as in the first version. The typing was sped up to 
 | 8.85 s | 7.60 s | He stops; the heading settles at 347–348°. |
 | 9.05–9.30 s | 7.80–8.05 s | Wrist lowered, the display goes dark. The clip ends at 8.13 s on the dark watch, and video 2 starts from black. |
 
-The watch shows 8:23 throughout, matching the 8:23 PM lock screen at the start of video 2.
+The watch shows 8:23 throughout, matching the 8:23 PM lock screen at the start of video 2. The Compass app shows **45°52′N 123°14′W, 690 ft** (≈ 45.864°N, 123.239°W): the Rock Creek valley along Keasey Rd, about 4 km west of Vernonia town centre (45.859°N, 123.189°W). The house is out in the forest, but its nearest town and postal address are still Vernonia. That is about 19 km north-north-west of the last dash cam position (N45.70512 W123.15156 at 7:50 PM).
 
 ## Audio
 
