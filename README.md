@@ -28,6 +28,22 @@ node render.mjs ../work/zf2 60 --scene 'scene2.html?zh' --workers 7
 # audio + encode exactly as for the English versions (the timeline is identical)
 ```
 
+## Japanese subtitle version (`output/日本語版/`)
+
+| File | Length |
+|---|---|
+| [`output/日本語版/video1_unlock_and_chat_ja.mp4`](output/日本語版/video1_unlock_and_chat_ja.mp4) | 34.8 s |
+| [`output/日本語版/video2_old_house_no_service_ja.mp4`](output/日本語版/video2_old_house_no_service_ja.mp4) | 30.3 s |
+
+Same as the Chinese version, but the chat bubbles decode into casual Japanese (university friends: "w" for lol, サークル for the club). The decode effect, timing and audio are unchanged, and only message text is translated. It is turned on with `?ja` (the `JA` table in `src/translate.js`). The sandbox has no network access, so Noto Sans JP could not be downloaded. Japanese glyphs come from a 32 KB subset of the same Noto Sans SC font (`src/fonts/NotoSansSC-subset-ja.otf`). Kana are correct; a few kanji use the Simplified-Chinese glyph design, which differs from the Japanese design only in small stroke details.
+
+```sh
+cd src
+node render.mjs ../work/jf1 60 --scene 'scene.html?ja' --workers 7
+node render.mjs ../work/jf2 60 --scene 'scene2.html?ja' --workers 7
+# audio + encode exactly as for the English versions
+```
+
 ## Video 1: unlock and chat
 
 | Time | Action |

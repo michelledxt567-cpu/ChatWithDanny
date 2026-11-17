@@ -1,13 +1,15 @@
-// Chinese-subtitle version of the chat bubbles (enabled with `scene.html?zh` / `scene2.html?zh`).
-// Each bubble first shows the original English, then decodes left to right into Chinese, with a
+// Chinese / Japanese subtitle versions of the chat bubbles (enabled with `scene.html?zh` / `?ja`, same for
+// scene2.html). Each bubble first shows the original English, then decodes left to right into the target language, with a
 // short band of scrambled glyphs at the front, in the style of Cyberpunk 2077's translated NPC lines.
 // Bubbles decode at their English size, then ease to the (usually smaller) Chinese size; the scenes
 // re-measure the chat every frame so the scroll framing holds while bubbles shrink.
 // Only message text is translated; the iOS/WhatsApp UI (day pills, "last seen", times, keyboard,
 // the text being typed in the input field) stays English.
-// Without `?zh` every function here is a no-op, so the English videos render exactly as before.
+// Without `?zh` / `?ja` every function here is a no-op, so the English videos render exactly as before.
 (function () {
-  const on = /(^|[?&])zh(=|&|$)/.test(location.search.slice(1));
+  const q = location.search.slice(1);
+  const LANG = /(^|[?&])ja(=|&|$)/.test(q) ? 'ja' : /(^|[?&])zh(=|&|$)/.test(q) ? 'zh' : '';
+  const on = !!LANG;
 
   const CN = {
     'ok I’m gonna try to finish it tonight': '好 我今晚争取把它弄完',
@@ -35,8 +37,38 @@
     'I’m here.': '我到了。',
   };
 
+  // Japanese: casual messages between university friends ("w" = lol, サークル = the campus club)
+  const JA = {
+    'ok I’m gonna try to finish it tonight': 'うん、今夜中に終わらせてみる',
+    'good luck lmao': 'がんばれww',
+    'Did you ever finish that poster last night?': '昨日の夜、あのポスター結局終わったの？',
+    'Barely 😭': 'ギリギリ 😭',
+    'I went to bed at like 3.': '寝たの3時くらい。',
+    'Knew it lol': 'だと思ったw',
+    'Send it to me when you get to campus': '大学着いたら送って',
+    'Yeah yeah': 'はいはい',
+    'btw I’m not coming to club this afternoon': 'あ、今日の午後サークル行かないわ',
+    'Why?': 'なんで？',
+    'I left the box with the display stuff at my dad’s old place': '展示用のものが入った箱、父さんの古い家に置いてきちゃって',
+    'the printed boards + a bunch of the materials are still there': '印刷したボードとか材料とか、まだ全部そこにある',
+    'Need to go pick them up before I forget again': 'また忘れる前に取りに行かないと',
+    'That old house?': 'あの古い家？',
+    'Yeah': 'うん',
+    'Haven’t been back there in ages lol': 'もうずっと行ってないけどw',
+    'Alright': 'そっか',
+    'See you tomorrow then': 'じゃあまた明日',
+    'You alive?': '生きてる？',
+    'Hey, you haven’t been in class either': 'ねえ、授業にも来てないじゃん',
+    'Everything okay?': '大丈夫？',
+    'I’m coming over to check on you.': '様子見に行くね。',
+    'I’m here.': '着いたよ。',
+  };
+  const DICT = LANG === 'ja' ? JA : CN;
+  // CJK glyphs: a subset of Noto Sans SC (the Japanese subset adds kana; kanji use the SC glyph shapes)
+  const FONT = LANG === 'ja' ? 'fonts/NotoSansSC-subset-ja.otf' : 'fonts/NotoSansSC-subset.otf';
+
   const LATIN = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghkmnpqrstuvwxyz0123456789#$%&*+=<>?/';
-  const HAN = [...new Set(Object.values(CN).join('').replace(/[\s，。？！😭a-zA-Z0-9]/gu, ''))].join('');
+  const HAN = [...new Set(Object.values(DICT).join('').replace(/[\s，、。？！😭a-zA-Z0-9]/gu, ''))].join('');
   const POOL = [...(LATIN + HAN)];
   const TRAIL = /(\s*(?:😭|👍))$/u;
 
@@ -68,15 +100,15 @@
     if (!on) return;
     emojify = emojifyFn;
     const st = document.createElement('style');
-    st.textContent = `@font-face { font-family: "ZHSub"; src: url("fonts/NotoSansSC-subset.otf") format("opentype"); }
+    st.textContent = `@font-face { font-family: "ZHSub"; src: url("${FONT}") format("opentype"); }
       #screen { font-family: "Noto Sans", "ZHSub", sans-serif !important; }
       .zhscr { opacity: 0.55; }`;
     document.head.appendChild(st);
-    return document.fonts.load('16px ZHSub', '我').then(() => {
+    return document.fonts.load('16px ZHSub', LANG === 'ja' ? 'あ' : '我').then(() => {
       items = [];
       root.querySelectorAll('.tx').forEach((tx, idx) => {
         const full = tx.dataset.en;
-        const cnFull = CN[full];
+        const cnFull = DICT[full];
         if (!cnFull) { console.warn('ZH: no translation for', full); return; }
         const tail = (full.match(TRAIL) || ['', ''])[1];
         const en = tail ? full.slice(0, -tail.length) : full;
@@ -158,5 +190,5 @@
 
   const wrap = (text, html) => on ? `<span class="tx" data-en="${esc(text)}">${html}</span>` : html;
 
-  window.ZH = { on, prepare, schedule, apply, wrap, CN };
+  window.ZH = { on, LANG, prepare, schedule, apply, wrap, CN, JA };
 })();
